@@ -1,13 +1,23 @@
+from slugify import slugify
 from django.db import models
+from django.core.exceptions import ValidationError
 
 
 class Category(models.Model):
     """ Модель категори """
     title = models.CharField('Название', max_length=154, unique=True)
-    slug = models.SlugField('URL', max_length=154, unique=True)
+    slug = models.SlugField('URL', max_length=154, blank=True, unique=True)
 
     def __str__(self):
         return self.title
+    
+    def clean(self):
+        slug = slugify(self.title)
+        if Category.objects.filter(slug=slug).exists():
+            if not self.pk and not Category.objects.filter(pk=self.pk, slug=slug).exists():
+                raise ValidationError('Категория с таким url уже существует!')
+        self.slug=slug
+        return super().clean()
     
     class Meta:
         verbose_name = 'Категория'
@@ -38,10 +48,10 @@ class Specification(models.Model):
 
     CUSTOM = 'custom'
     BASE = 'base'
-    CHOICE_TYPE_FILTER = ( (CUSTOM, 'Катомный'), (BASE, 'Основной') )
+    CHOICE_TYPE_FILTER = ( (CUSTOM, 'Кастомный'), (BASE, 'Основной') )
 
     title = models.CharField('Название', max_length=154)
-    slug = models.SlugField('URL', max_length=154, blank=True, null=True)
+    slug = models.SlugField('URL', max_length=154, blank=True, unique=True)
     category = models.ForeignKey('Category', on_delete=models.CASCADE, verbose_name='Категория')
     unit = models.CharField('Ед. измерения', max_length=64, blank=True, null=True)
     use_filters = models.BooleanField('Использование в фильтрах', default=False)
@@ -49,13 +59,24 @@ class Specification(models.Model):
 
     def __str__(self):
         return f'{self.category.title} | {self.title}'
-    
-    # TODO: Метод SAVE. 
-    # 1. Построить slug, перед сохранением.
-    # 2. Ограничить возможность изменения поля type_filter=custom, если значения характеристик, имеют значения, не являющиеся числом.
+
+    def clean(self):
+        slug_string = f'{self.category.title}_{self.title}'
+        slug = slugify(slug_string)
+        if Specification.objects.filter(slug=slug).exists():
+            if not self.pk and not Specification.objects.filter(pk=self.pk, slug=slug).exists():
+                raise ValidationError('Характеристика с таким url уже существует!')
+        self.slug = slug
+        if self.type_filter == self.CUSTOM:
+            if ValuesOfSpecification.objects.filter(specification=self):
+                for obj in ValuesOfSpecification.objects.filter(specification=self):
+                    if not obj.value.isnumeric():
+                        #TODO: Error вещественные числа.
+                        raise ValidationError('Перед изменения типа, убедитесь что значения характеристик являются числами!')
+        return super().clean()
     
     class Meta:
-        unique_together = ['title', 'category']
+        unique_together = ('title', 'category')
         verbose_name = 'Характеристика'
         verbose_name_plural = 'Характеристики'
 
@@ -64,7 +85,7 @@ class ValuesOfSpecification(models.Model):
     """ Модель возможных значений характеристик """
     specification = models.ForeignKey('Specification', on_delete=models.CASCADE, verbose_name='Характеристика')
     value = models.CharField('Значение', max_length=154)
-    products = models.ManyToManyField('Product', verbose_name='Продукты')
+    products = models.ManyToManyField('Product', verbose_name='Продукты', blank=True)
 
     def __str__(self):
         return f'{self.specification.title}: {self.value} {self.specification.unit}'
@@ -72,9 +93,9 @@ class ValuesOfSpecification(models.Model):
     # TODO: Метод SAVE. Значение может принимать только число, если specification.type_filter = custom.
     
     class Meta:
-        unique_together = ['specification', 'value']
+        unique_together = ('specification', 'value')
         verbose_name = 'Значение хакрктеристики'
-        verbsoe_name_plural = 'Значения характеристики'
+        verbose_name_plural = 'Значения характеристики'
 
 
 class CustomFilterOne(models.Model):
