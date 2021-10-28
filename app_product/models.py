@@ -2,6 +2,8 @@ from slugify import slugify
 from django.db import models
 from django.core.exceptions import ValidationError
 
+from .functions import is_digit
+
 
 class Category(models.Model):
     """ Модель категори """
@@ -70,8 +72,7 @@ class Specification(models.Model):
         if self.type_filter == self.CUSTOM:
             if ValuesOfSpecification.objects.filter(specification=self):
                 for obj in ValuesOfSpecification.objects.filter(specification=self):
-                    if not obj.value.isnumeric():
-                        #TODO: Error вещественные числа.
+                    if not is_digit(obj.value):
                         raise ValidationError('Перед изменения типа, убедитесь что значения характеристик являются числами!')
         return super().clean()
     
@@ -90,12 +91,16 @@ class ValuesOfSpecification(models.Model):
     def __str__(self):
         return f'{self.specification.title}: {self.value} {self.specification.unit}'
     
-    # TODO: Метод SAVE. Значение может принимать только число, если specification.type_filter = custom.
+    def clean(self):
+        if self.specification.type_filter == 'custom':
+            if not is_digit(self.value):
+                raise ValidationError('Характеристика с кастомным типом, может иметь только числовые значения!')
+        return super().clean()
     
     class Meta:
         unique_together = ('specification', 'value')
-        verbose_name = 'Значение хакрктеристики'
-        verbose_name_plural = 'Значения характеристики'
+        verbose_name = 'Значение хакрктеристик'
+        verbose_name_plural = 'Значения характеристик'
 
 
 class CustomFilterOne(models.Model):
@@ -105,14 +110,19 @@ class CustomFilterOne(models.Model):
     moreOrEqual = models.FloatField('Больше или равно', blank=True, null=True)
 
     def __str__(self):
-        if self.lessOrEqual and moreOrEqual:
+        if self.lessOrEqual and self.moreOrEqual:
             return f'{self.specification.title} | Фильтры: Меньше или равно: {self.lessOrEqual}, Больше или равно: {self.moreOrEqual}'
         elif self.lessOrEqual:
             return f'{self.specification.title} | Фильтр: Меньше или равно: {self.lessOrEqual}'
         else:
             return f'{self.specification.title} | Фильтр: Больше или равно: {self.moreOrEqual}'
     
-    # TODO: Метод SAVE. Проверять перед сохранением заполнение одного из полей: LessOrEqual or MoreOrEqual
+    def clean(self):
+        if not self.lessOrEqual and not self.moreOrEqual:
+            raise ValidationError('Должна быть заполнено, хотя бы одно поле "Меньше или равно" "Больше или равно"! ')
+        if not self.specification.type_filter == 'custom':
+            raise ValidationError('Выбранная характеристика должна бысть с кастомным типом фильтра!')
+        return super().clean()
     
     class Meta:
         verbose_name = 'Кастомный фильтр №1'
@@ -127,6 +137,13 @@ class CustomFilterTwo(models.Model):
 
     def __str__(self):
         return f'{self.specification.title} | Фильтр: От {self.from_digit} до {self.before_digit}'
+    
+    def clean(self):
+        if self.from_digit > self.before_digit:
+            raise ValidationError('Проверьте правильность значений!')
+        if not self.specification.type_filter == 'custom':
+            raise ValidationError('Выбранная характеристика должна бысть с кастомным типом фильтра!')
+        return super().clean()
     
     class Meta:
         verbose_name = 'Кастомный фильтр №2'
