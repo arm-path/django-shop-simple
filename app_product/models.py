@@ -19,7 +19,6 @@ class Category(models.Model):
             if not self.pk and not Category.objects.filter(pk=self.pk, slug=slug).exists():
                 raise ValidationError('Категория с таким url уже существует!')
         self.slug=slug
-        return super().clean()
     
     class Meta:
         verbose_name = 'Категория'
@@ -29,7 +28,7 @@ class Category(models.Model):
 class Product(models.Model):
     """ Модель продукта """
     title = models.CharField('Название', max_length=255)
-    slug = models.SlugField('URL', max_length=255, unique=True)
+    slug = models.SlugField('URL', max_length=255, blank=True, unique=True)
     category = models.ForeignKey('Category', on_delete=models.CASCADE, verbose_name='Категория')
     image = models.ImageField('Изображение', upload_to='products/%Y/', blank=True, null=True)
     price = models.DecimalField('Цена', max_digits=12, decimal_places=2, default=0.00)
@@ -39,6 +38,13 @@ class Product(models.Model):
 
     def __str__(self):
         return self.title
+    
+    def clean(self):
+        slug = slugify(self.title)
+        if Product.objects.filter(slug=slug).exists():
+            if not self.pk and not Category.objects.filter(pk=self.pk, slug=slug).exists():
+                raise ValidationError('Продукт с таким названием уже существует!')
+        self.slug = slug
     
     class Meta:
         verbose_name = 'Продукт'
@@ -74,7 +80,6 @@ class Specification(models.Model):
                 for obj in ValuesOfSpecification.objects.filter(specification=self):
                     if not is_digit(obj.value):
                         raise ValidationError('Перед изменения типа, убедитесь что значения характеристик являются числами!')
-        return super().clean()
     
     class Meta:
         unique_together = ('title', 'category')
@@ -95,7 +100,6 @@ class ValuesOfSpecification(models.Model):
         if self.specification.type_filter == 'custom':
             if not is_digit(self.value):
                 raise ValidationError('Характеристика с кастомным типом, может иметь только числовые значения!')
-        return super().clean()
     
     class Meta:
         unique_together = ('specification', 'value')
@@ -122,7 +126,6 @@ class CustomFilterOne(models.Model):
             raise ValidationError('Должна быть заполнено, хотя бы одно поле "Меньше или равно" "Больше или равно"! ')
         if not self.specification.type_filter == 'custom':
             raise ValidationError('Выбранная характеристика должна бысть с кастомным типом фильтра!')
-        return super().clean()
     
     class Meta:
         verbose_name = 'Кастомный фильтр №1'
@@ -143,7 +146,6 @@ class CustomFilterTwo(models.Model):
             raise ValidationError('Проверьте правильность значений!')
         if not self.specification.type_filter == 'custom':
             raise ValidationError('Выбранная характеристика должна бысть с кастомным типом фильтра!')
-        return super().clean()
     
     class Meta:
         verbose_name = 'Кастомный фильтр №2'

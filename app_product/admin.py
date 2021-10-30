@@ -10,6 +10,16 @@ class CategoryAdmin(admin.ModelAdmin):
     fields = ('title',)
 
 
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    """ Представление продуктов в административной панели """
+    list_display = ('title', 'category', 'price', 'rating')
+    list_filter = ('category__title',)
+    search_fields = ('title',)
+    fields = ('title', 'category', 'image', 'price', 'product_availability', 'description')
+
+
+
 @admin.register(Specification)
 class SpecificationAdmin(admin.ModelAdmin):
     """ Представление характеристик в административной панели """
@@ -51,7 +61,4 @@ class CustomFilterTwoAdmin(admin.ModelAdmin):
     
     get_filter_name.short_description = 'Фильтр'
 
-
-
-admin.site.register(Product)
 

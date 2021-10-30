@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %} Управление: Категории {% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <ul class="list-group">
+            <a href="#" class="list-group-item list-group-item-action active list-group-item-info" aria-current="true">
+                Добавить категорию
+            </a>
+            <li class="list-group-item disabled">Изменить категорию:</li>
+            {% for category in categories %}
+            <a href="#" class="list-group-item list-group-item-action">{{ category }}</a>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="col-md-8">{% block form %} {% endblock %}</div>
+
+</div>
+
+{% endblock %}
