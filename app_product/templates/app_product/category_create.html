@@ -2,8 +2,20 @@
 {% block title %} Создать: Категория {% endblock %}
 
 {% block form %}
-{{ form_category }}
-{{ form_specification }}
-{{ form_value }}
+<h3 class="text-center">Добавление категории</h3>
+{% for error in form.non_field_errors %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endfor %}
+{% for error in form.title.errors %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endfor %}
+<form action="" method="POST">
+    {% csrf_token %}
+    <label class="mb-2" for="{{ form.title.id_for_label }}">{{ form.title.label }}: </label>
+    {{form.title}}
+    <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-dark mt-3">Добавить категорию</button>
+    </div>
+</form>
 
 {% endblock %}
