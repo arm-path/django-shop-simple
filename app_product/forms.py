@@ -20,7 +20,7 @@ class CategoryForm(forms.ModelForm):
 class SpecificationForm(forms.ModelForm):
     """ Форма Характеристик """
 
-    def __init__(self, get_category=None, *args, **kwargs):
+    def __init__(self,  *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['title'].label = 'Характеристика'
         self.fields['unit'].label = 'Ед. Измерения'

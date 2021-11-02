@@ -58,22 +58,21 @@
                 <h5 class="modal-title" id="createSpecificationLabel">Добавление характеристики</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{% url 'specification_create' slug_categories %}" method="POST">
+            <form action="{% url 'specification_create' slug_categories %}" id='id_form_specification' method="POST">
                 <div id='container_create_specification' class="modal-body">
                     {% csrf_token %}
                     {{ form_specification }}
+                    <input type="hidden" id="id_category_specification" value={{slug_categories}} />
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
-                    <button type="submit" class="btn btn-success">Добавить</button>
+                    <button type="submit" id="id_add_specification" class="btn btn-success">Добавить</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-{% block js_script %}
 <script src="{% static  'js/specification_create_and_change.js' %}"></script>
-{% endblock %}
 
 {% endblock %}

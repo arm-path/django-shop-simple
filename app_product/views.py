@@ -1,4 +1,5 @@
-from django.http import Http404
+import json
+from django.http import JsonResponse, Http404
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import View, CreateView
@@ -80,14 +81,21 @@ class SpecificationCreateView(View):
         slug_category = self.kwargs.get('slug')
         if not Category.objects.filter(slug=slug_category).exists():
             raise Http404()
-        model_category = Category.objects.get(slug=slug_category)
-        form_specification = SpecificationForm(request.POST or None)
+
+        client_data = json.loads(request.body.decode("utf-8"))
+        form_data = {}
+        if client_data['title'] and client_data['unit'] and client_data['use_filters'] and client_data['type_filter']:
+            model_category = Category.objects.get(slug=slug_category)
+            form_data['title'] = client_data['title']
+            form_data['category'] = model_category
+            form_data['unit'] = client_data['unit']
+            form_data['use_filters'] = client_data['use_filters']
+            form_data['type_filter'] = client_data['type_filter']
+
+        form_specification = SpecificationForm(form_data)
         if form_specification.is_valid():
-            model_specification = form_specification.save(commit=False)
-            model_specification.category = model_category
-            model_specification.title = form_specification.cleaned_data['title']
-            model_specification.unit = form_specification.cleaned_data['unit']
-            model_specification.use_filters = form_specification.cleaned_data['use_filters']
-            model_specification.type_filter = form_specification.cleaned_data['type_filter']
-            model_specification.save()
-        return redirect('category_change', slug=slug_category)
+            return JsonResponse({'success': 'True'})
+        else:
+            print('Errors', form_specification.errors)
+            errors_dict = json.dumps(dict([(k, [e for e in v]) for k, v in form_specification.errors.items()]))
+            return JsonResponse({'errors': json.dumps(form_specification.errors)})
