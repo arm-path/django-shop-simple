@@ -1,24 +1,27 @@
 {% extends 'base.html' %}
+
 {% block title %} Управление: Категории {% endblock %}
 
 {% block content %}
+
 <div class="row">
     <div class="col-md-3">
         <ul class="list-group">
-            <a href="{% url 'category_create' %}"
-               class="list-group-item list-group-item-action active list-group-item-dark">
+
+            <a href="{% url 'category_create' %}" class="list-group-item list-group-item-action
+            {% if 'category-create' in request.path %}active list-group-item-dark {% endif %}">
                 Добавить категорию
             </a>
             <li class="list-group-item disabled">Изменить категорию:</li>
             {% for category in categories %}
-            <a href="{% url 'category_change' category.slug %}" class="list-group-item list-group-item-action">
+            <a href="{% url 'category_change' category.slug %}" class="list-group-item list-group-item-action
+                     {% if category.slug in request.path %} active list-group-item-dark {% endif %}">
                 {{ category}}
             </a>
             {% endfor %}
         </ul>
     </div>
-    <div class="col-md-8">{% block form %} {% endblock %}</div>
-
+    <div style="position: relative" class="col-md-8">{% block form %} {% endblock %}</div>
 </div>
 
 {% endblock %}

@@ -66,7 +66,7 @@ class Specification(models.Model):
     type_filter = models.CharField('Тип фильтра', max_length=64, choices=CHOICE_TYPE_FILTER, default=BASE)
 
     def __str__(self):
-        return f'{self.category.title} | {self.title}'
+        return f'{self.category.title} - {self.title}'
 
     def clean(self):
         slug_string = f'{self.category.title}_{self.title}'

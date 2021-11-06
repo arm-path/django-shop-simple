@@ -1,0 +1,107 @@
+{% extends 'app_control/category_control.html' %}
+
+{% block title %} Изменить: Категория {% endblock %}
+
+{% block form %}
+
+{% load static %}
+
+<!-- Категория -->
+<h3 class="text-center">Изменение категории</h3>
+<a class="text-end" style=" position: absolute; text-decoration: none; color: #ffffff; right: 15px"
+   href="#">
+    <button type="button" class="btn btn-danger text-end pt-0 pb-0">Удалить</button>
+</a>
+{% for error in form_category.non_field_errors %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endfor %}
+{% for error in form_category.title.errors %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endfor %}
+<form action="" method="POST">
+    {% csrf_token %}
+    <label class="mb-2" for="{{ form.title.id_for_label }}">{{ form_category.title.label }}: </label>
+    {{form_category.title}}
+    <div class="d-grid gap-2">
+        <button type="submit" class="btn btn-dark mt-3">Изменить название</button>
+    </div>
+</form>
+
+<h3 class="mt-3">Характеристики:</h3>
+<!--Добавление Характеристики-->
+<button type="button" id="create_specification" class="btn btn-success" data-bs-toggle="modal"
+        data-bs-target="#createChangeSpecification" data-action="{% url 'specification_create' slug_category %}"> Добавить характеристику
+</button>
+<!--Список Характеристики-->
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">№</th>
+        <th scope="col">Характеристика</th>
+        <th scope="col">Фильтр</th>
+        <th scope="col">Тип фильтра</th>
+        <th scope="col">Действие</th>
+    </tr>
+    </thead>
+    <tbody id="table_specification">
+    {% for specification in specifications %}
+    <tr>
+        <th scope="row">{{ forloop.counter }}</th>
+        <td>{{ specification.title }}</td>
+        <td>
+            {% if specification.use_filters %}
+            <i class="bi bi-check-lg"></i>
+            {% else %}
+            <i class="bi bi-x"></i>
+            {% endif %}
+        </td>
+        <td>{{ specification.get_type_filter_display }}</td>
+        <td>
+            <!-- Изменение Характеристики -->
+            <button id="change_specification_{{specification.pk}}" class="btn btn-primary change-js"
+                    data-action="{% url 'specification_change' slug_category specification.pk %}" data-change="change-btn">
+                <i class="bi bi-vector-pen" data-change="change-icon"></i>
+            </button>
+            <!-- Значения Характеристик -->
+            <a style="text-decoration: none; color: #ffffff" href="{% url 'specification_value_create' specification.slug %}">
+                <button id="create_value_{{specification.pk}}" type="button" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i>
+                </button>
+            </a>
+            <!-- Удаление Характеристики -->
+            <a style="text-decoration: none; color: #ffffff" href="{% url 'specification_delete' slug_category specification.pk %}">
+                <button type="button" class="btn btn-danger"><i class="bi bi-trash"></i></button>
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<!-- Добавление и Изменение Характеристики -->
+<div class="modal fade modal-js" id="createChangeSpecification" tabindex="-1" data-modal="True"
+     aria-labelledby="createChangeSpecificationLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createChangeSpecificationLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="#" id='id_form_specification' method="POST">
+                <div id="id_errors_specification"></div>
+                <div class="modal-body">
+                    {% csrf_token %}
+                    {{ form_specification }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+                    <button type="submit" id="id_btn_specification" class="btn btn-success">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{% static  'js/specification.js' %}"></script>
+
+{% endblock %}

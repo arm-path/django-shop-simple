@@ -1,7 +1,9 @@
-{% extends 'app_product/category_control.html' %}
+{% extends 'app_control/category_control.html' %}
+
 {% block title %} Создать: Категория {% endblock %}
 
 {% block form %}
+
 <h3 class="text-center">Добавление категории</h3>
 {% for error in form.non_field_errors %}
 <div class="alert alert-danger">{{ error }}</div>

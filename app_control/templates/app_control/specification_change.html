@@ -1,0 +1,71 @@
+{% extends 'app_control/category_control.html' %}
+
+{% block title %} Изменить: Категория {% endblock %}
+
+{% block form %}
+
+{% load static %}
+<h3 class="text-center">Возможные значения для характеристики: {{ specification }}</h3>
+<!--Добавление Значения Характеристики -->
+<button type="button" id="create_value_specification" class="btn btn-success" data-bs-toggle="modal"
+        data-bs-target="#create_change_value_specification" data-action="{% url 'specification_value_create' slug_specification %}">
+    Добавить Значение
+</button>
+<!--Список Возможных Значений Характеристик -->
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">№</th>
+        <th scope="col">Значение</th>
+        <th scope="col">Продукты</th>
+        <th scope="col">Действие</th>
+    </tr>
+    </thead>
+    <tbody id="table_value_specification">
+    {% for value in values_specification %}
+    <tr>
+        <th scope="row">{{ forloop.counter }}</th>
+        <td>{{ value.value }} {{ value.specification.unit }}</td>
+        <td></td>
+        <td>
+            <!-- Изменение Значения Характеристик -->
+            <button id="change_specification_{{value.pk}}" class="btn btn-primary change-js"
+                    data-action="{% url 'specification_value_change' slug_specification value.pk %}" data-change="change-btn">
+                <i class="bi bi-vector-pen" data-change="change-icon"></i>
+            </button>
+            <!-- Удаление Значения Характеристик -->
+            <a style="text-decoration: none; color: #ffffff" href="{% url 'specification_value_delete' slug_specification value.pk %}">
+                <button type="button" class="btn btn-danger"><i class="bi bi-trash"></i></button>
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<!-- Добавление и Изменение Значений Характеристик -->
+<div class="modal fade modal-js" id="create_change_value_specification" tabindex="-1" data-modal="True"
+     aria-labelledby="create_change_value_specification_label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="create_change_value_specification_label"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="#" id='id_form_value_specification' method="POST">
+                <div id="id_errors_value_specification"></div>
+                <div class="modal-body">
+                    {% csrf_token %}
+                    {{ form_value_specification }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+                    <button type="submit" id="id_submit_value_specification" class="btn btn-success">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{% static  'js/value_specification.js' %}"></script>
+
+{% endblock %}
