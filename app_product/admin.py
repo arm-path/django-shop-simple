@@ -16,7 +16,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ('title', 'category', 'price', 'rating')
     list_filter = ('category__title',)
     search_fields = ('title',)
-    fields = ('title', 'category', 'image', 'price', 'product_availability', 'description')
+    fields = ('title', 'category', 'image', 'price', 'product_availability', 'description', 'specification')
 
 
 
@@ -34,7 +34,7 @@ class ValuesOfSpecificationAdmin(admin.ModelAdmin):
     """ Представление значений характеристик в административной панели """
     list_display = ('specification', 'value', 'get_unit')
     list_filter = ('specification__title',)
-    fields = ('specification', 'value', 'products')
+    fields = ('specification', 'value')
 
     def get_unit(self, obj):
         return obj.specification.unit

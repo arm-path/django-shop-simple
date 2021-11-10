@@ -35,6 +35,7 @@ class Product(models.Model):
     product_availability = models.BooleanField('Наличие товара', default=True)
     description = models.TextField('Описание', blank=True, null=True)
     rating = models.FloatField('Рейтинг', default=0.0)
+    specification = models.ManyToManyField('ValuesOfSpecification', blank=True, verbose_name='Характеристики')
 
     def __str__(self):
         return self.title
@@ -92,7 +93,6 @@ class ValuesOfSpecification(models.Model):
     """ Модель возможных значений характеристик """
     specification = models.ForeignKey('Specification', on_delete=models.CASCADE, verbose_name='Характеристика')
     value = models.CharField('Значение', max_length=154)
-    products = models.ManyToManyField('Product', verbose_name='Продукты', blank=True)
 
     def __str__(self):
         return f'{self.specification.title}: {self.value} {self.specification.unit}'

@@ -1,7 +1,8 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.forms.fields import CharField
 
-from app_product.models import Category, Specification, ValuesOfSpecification
+from app_product.models import Category, Specification, ValuesOfSpecification, Product
 
 
 class CategoryForm(forms.ModelForm):
@@ -66,3 +67,29 @@ class ValuesOfSpecificationForm(forms.ModelForm):
     class Meta:
         model = ValuesOfSpecification
         fields = ('value', 'specification')
+
+
+class ProductForm(forms.ModelForm):
+    """ Форма Продукта """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['title'].label = 'Название'
+        self.fields['category'].label = 'Категория'
+        self.fields['image'].label = 'Изображение'
+        self.fields['price'].label = 'Цена'
+        self.fields['product_availability'].label = 'Наличие товара'
+        self.fields['description'].label = 'Описание'
+
+    title = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    category = forms.ModelChoiceField(
+        widget=forms.HiddenInput(attrs={'class': 'form-control'}), queryset=Category.objects.all())
+    image = forms.ImageField(widget=forms.FileInput(attrs={'class': 'form-control'}), required=False)
+    price = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    product_availability = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input d-block', 'required': False}), required=False)
+    description = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}))
+
+    class Meta:
+        model = Product
+        fields = ('title', 'category', 'image', 'price', 'product_availability', 'description')

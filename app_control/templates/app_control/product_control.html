@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %} Управление: Продукт {% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h3 class="text-center">Добавление продукта</h3>
+    <form action="" method="POST">
+        {% csrf_token %}
+        <label>Выберите категорию: </label>
+        <div class="row">
+            <div class="col-md-7">
+                <select name="category" class="form-select" aria-label="Default select example">
+                    {% for category in categories %}
+                    <option value="{{ category.slug }}">{{ category.title }}</option>
+                    {% endfor %}
+                </select>
+                <button class="btn btn-success mt-3">Перейти к добавлению продукта</button>
+            </div>
+            <div class="col-md-3">
+                <a style="text-decoration: none; color: #ffffff" href="{% url 'category_create' %}">
+                    <button type="button" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i>
+                    </button>
+                </a>
+            </div>
+
+        </div>
+
+    </form>
+</div>
+{% endblock %}
