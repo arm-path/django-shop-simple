@@ -1,14 +1,21 @@
 import json
+
+from django.forms.models import model_to_dict
 from django.http import JsonResponse, Http404
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import View, CreateView
-from django.forms.models import model_to_dict
 
-from app_product.models import Category, Specification, ValuesOfSpecification
-from .forms import CategoryForm, SpecificationForm, ValuesOfSpecificationForm, ProductForm
-from .mixins import BaseMixin, CategoryChangeMixin, SpecificationCreateAndChangeMixin, ValuesOfSpecificationCreateAndChangeMixin, \
-    CreateProductMixin
+from app_product.models import Category, Specification, ValuesOfSpecification, Product
+from .forms import (CategoryForm,
+                    SpecificationForm,
+                    ValuesOfSpecificationForm,
+                    ProductForm, ProductAdditionallyForm)
+from .mixins import (BaseMixin,
+                     CategoryChangeMixin,
+                     SpecificationCreateAndChangeMixin,
+                     ValuesOfSpecificationCreateAndChangeMixin,
+                     CreateAndChangeProductMixin)
 
 
 class CategoryCreateView(CreateView):
@@ -142,47 +149,71 @@ class ControlProductView(View):
         return render(request, 'app_control/product_control.html', {'categories': categories})
 
 
-class CreateProductView(CreateProductMixin, View):
+class CreateProductView(CreateAndChangeProductMixin, View):
     """ Представление добавления продукта """
 
     def get(self, request, *args, **kwargs):
-        context = self.get_context()
+        context = self.get_context(slug_model='Category')
         context['form_product'] = ProductForm()
         return render(request, 'app_control/product_create.html', context)
 
     def post(self, request, *args, **kwargs):
-        context = self.get_context()
+        self.check_options()
+        category = Category.objects.get(slug=self.slug_option)
         form_data = request.POST.copy()
-        form_data.__setitem__('category', str(self.category.pk))
+        form_data.__setitem__('category', str(category.pk))
         form_product = ProductForm(form_data, files=request.FILES or None)
-        if form_product.is_valid():
-            model_product = form_product.save()
-            for key in request.POST.copy():
-                if key.find('id_specification_') >= 0:
-                    id_specification = key.replace('id_specification_', '')
-                    value = int(request.POST.get(key)) if request.POST.get(key).isdigit() else None
-                    id_specification = int(id_specification) if id_specification.isdigit() else None
-                    if value and value != 0 and id_specification:
-                        if ValuesOfSpecification.objects.filter(pk=value).exists() and Specification.objects.filter(
-                                pk=id_specification).exists():
-                            model_product.specification.add(ValuesOfSpecification.objects.get(pk=value))
-                            model_product.save()
+        category_specification = self.get_post_general(request=request, action='create', form_product=form_product)
+        if category_specification == 'redirect':
             return redirect('product_create_control')
+        context = {
+            'category': category,
+            'form_product': form_product,
+            'form_value_specification': ValuesOfSpecificationForm(),
+            'category_specification': category_specification
+        }
+        return render(request, 'app_control/product_create.html', context)
 
+
+class ChangeProductView(CreateAndChangeProductMixin, View):
+    """ Представление изменения продукта """
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context(slug_model='Product')
+        context['form_product'] = ProductAdditionallyForm(instance=self.model_product)
+        return render(request, 'app_control/product_change.html', context)
+
+    def post(self, request, *args, **kwargs):
+        self.check_options(slug_model='Product')
+        model_product = Product.objects.get(slug=self.slug_option)
+        form_product = ProductForm(request.POST, instance=model_product or None)
+        category_specification = self.get_post_general(request=request, action='change', form_product=form_product)
+        if category_specification == 'redirect':
+            return redirect('product_change', slug=model_product.slug)
+        context = {
+            'form_product': form_product,
+            'category_specification': category_specification,
+            'form_value_specification': ValuesOfSpecificationForm(),
+            'slug_product': self.slug_option
+        }
+        return render(request, 'app_control/product_change.html', context)
+
+
+class ChangeCategoryInProductView(View):
+    """ Представление изменения категории в прдставлении изменения продукта """
+
+    def get(self, request, *args, **kwargs):
+        slug_product = self.kwargs.get('slug')
+        id_category = self.kwargs.get('pk')
+        model_category = Category.objects.get(pk=id_category)
         category_specification = []
-        for specification in self.specifications:
-            id_value_selected = request.POST.get(f'id_specification_{specification.pk}' or None)
-            select = None
-            if id_value_selected and id_value_selected.isdigit() and ValuesOfSpecification.objects.filter(pk=id_value_selected).exists():
-                select = ValuesOfSpecification.objects.get(pk=id_value_selected).pk
+        specifications = Specification.objects.filter(category=model_category)
+        for specification in specifications:
             category_specification.append({
                 'pk': specification.pk,
                 'title': specification.title,
                 'slug': specification.slug,
-                'values': ValuesOfSpecification.objects.filter(specification=specification).values('pk', 'value'),
-                'select': select
+                'values': list(ValuesOfSpecification.objects.filter(specification=specification).values('pk', 'value'))
             })
-
-        context['category_specification'] = category_specification
-        context['form_product'] = form_product
-        return render(request, 'app_control/product_create.html', context)
+        print(category_specification)
+        return JsonResponse({'category_specification': category_specification})

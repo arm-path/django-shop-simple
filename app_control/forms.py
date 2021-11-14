@@ -93,3 +93,13 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = ('title', 'category', 'image', 'price', 'product_availability', 'description')
+
+
+class ProductAdditionallyForm(ProductForm):
+    """ Форма продукта (Дополнительная, для изменения продукта) """
+    category = forms.ModelChoiceField(
+        widget=forms.Select(attrs={'class': 'form-control'}), queryset=Category.objects.all())
+
+
+
+

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %} Управление: Изменение продукта {% endblock %}
+
+{% block content %}
+{% load static %}
+<h3 class="text-center">Изменение продукта</h3>
+{% include 'include/messages.html' %}
+<form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{form_product}}
+    <span id="id_slug" style="display: none">{{ slug_product }}</span>
+    <h4 class="mt-3">Характеристики:</h4>
+    <div id="id_specifications">
+        {% for specification in category_specification %}
+        <div class="row">
+            <div class="col-md-4 mt-2">
+                {{ specification.title }}
+            </div>
+            <div class="col-md-3 mt-2">
+                <select id="id_select_{{ specification.pk }}" name="id_specification_{{ specification.pk }}"
+                        class="form-select" aria-label="Default select example">
+                    <option value="0" {% if not specification.select %} selected {% endif %}>-------</option>
+                    {% for value in specification.values %}
+                    <option value="{{ value.pk }}"
+                            {% if specification.select == value.pk %} selected {% endif %}>
+                        {{ value.value }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 mt-2">
+                <button type="button" class="btn btn-success"
+                        data-add-value="add-value-btn" data-action="{% url 'specification_value_create' specification.slug %}"
+                        data-get-select="id_select_{{ specification.pk }}">
+                    <i class="bi bi-plus-circle" data-add-value="add-value-btn"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div style="width: 50%; margin: 0 auto" class="d-grid mt-3">
+        <button class="btn btn-success" type="submit"> Сохранить</button>
+    </div>
+</form>
+
+<!-- Добавление Значений Характеристик -->
+<div class="modal fade modal-js" id="create_change_value_specification" tabindex="-1" data-modal="True"
+     aria-labelledby="create_change_value_specification_label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="create_change_value_specification_label">Добавление значения</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="#" id='id_form_value_specification' method="POST">
+                <div id="id_errors_value_specification"></div>
+                <div class="modal-body">
+                    {% csrf_token %}
+                    {{ form_value_specification }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отменить</button>
+                    <button type="submit" id="id_submit_value_specification" class="btn btn-success">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="{% static 'js/product_change.js' %}"></script>
+<script src="{% static 'js/product.js' %}"></script>
+
+{% endblock %}

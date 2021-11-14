@@ -1,4 +1,4 @@
-let url = null, select_id = null,
+let url = null, select_id = null, newOption
     modal_specification = document.querySelector('.modal-js[data-modal]'),
     id_value = document.getElementById('id_value'),
     id_errors_value_specification = document.getElementById('id_errors_value_specification')
@@ -45,8 +45,8 @@ const send_on_check = async (url, data, select_values) => {
                     })
                 }
             } else {
-                
-                let newOption = new Option(response.data.success.value, response.data.success.id)
+                newOption = new Option(response.data.success.value, response.data.success.id)
+                document.getElementById(`id_select_${response.data.success.specification}`).append(newOption)
                 newOption.selected = true
             }
         }
