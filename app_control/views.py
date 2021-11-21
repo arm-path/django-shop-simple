@@ -4,13 +4,20 @@ from django.forms.models import model_to_dict
 from django.http import JsonResponse, Http404
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from django.views.generic import View, CreateView
+from django.views.generic import View, CreateView, DeleteView
 
-from app_product.models import Category, Specification, ValuesOfSpecification, Product
+from .utils import isint
+from app_product.models import (Category,
+                                Specification,
+                                ValuesOfSpecification,
+                                Product,
+                                CustomFilterOne,
+                                CustomFilterTwo)
 from .forms import (CategoryForm,
                     SpecificationForm,
                     ValuesOfSpecificationForm,
-                    ProductForm, ProductAdditionallyForm)
+                    ProductForm, ProductAdditionallyForm,
+                    CustomFilterOneForm, CustomFilterTwoForm)
 from .mixins import (BaseMixin,
                      CategoryChangeMixin,
                      SpecificationCreateAndChangeMixin,
@@ -50,6 +57,12 @@ class CategoryChangeView(CategoryChangeMixin, View):
             return redirect('category_change', slug=model_category.slug)
         context['form_category'] = form_category
         return render(request, 'app_control/category_change.html', context=context)
+
+
+class CategoryDeleteView(DeleteView):
+    """ Представление удаления категории """
+    model = Category
+    success_url = reverse_lazy('category_create')
 
 
 class SpecificationCreateView(SpecificationCreateAndChangeMixin, View):
@@ -181,12 +194,13 @@ class ChangeProductView(CreateAndChangeProductMixin, View):
     def get(self, request, *args, **kwargs):
         context = self.get_context(slug_model='Product')
         context['form_product'] = ProductAdditionallyForm(instance=self.model_product)
+        context['product_slug'] = self.slug_option
         return render(request, 'app_control/product_change.html', context)
 
     def post(self, request, *args, **kwargs):
         self.check_options(slug_model='Product')
         model_product = Product.objects.get(slug=self.slug_option)
-        form_product = ProductForm(request.POST, instance=model_product or None)
+        form_product = ProductForm(request.POST, instance=model_product, files=request.FILES or None)
         category_specification = self.get_post_general(request=request, action='change', form_product=form_product)
         if category_specification == 'redirect':
             return redirect('product_change', slug=model_product.slug)
@@ -215,5 +229,93 @@ class ChangeCategoryInProductView(View):
                 'slug': specification.slug,
                 'values': list(ValuesOfSpecification.objects.filter(specification=specification).values('pk', 'value'))
             })
-        print(category_specification)
         return JsonResponse({'category_specification': category_specification})
+
+
+class ProductDeleteView(DeleteView):
+    """ Представление удаления продукта """
+    model = Product
+    success_url = reverse_lazy('base')
+
+
+class FilterControlView(View):
+    """ Представление создания фильтра """
+
+    def get(self, request, *args, **kwargs):
+        categories = Category.objects.all()
+        context = {'categories': categories}
+        if request.GET.get('category') and request.GET.get('specification'):
+            slug_category = request.GET.get('category')
+            slug_specification = request.GET.get('specification')
+            return redirect('filter_create', slug_category, slug_specification)
+
+        if request.GET.get('category') and not request.GET.get('specification'):
+            slug_category = request.GET.get('category')
+            if Specification.objects.filter(category__slug=slug_category).exists():
+                return JsonResponse(
+                    {'specifications': list(
+                        Specification.objects.filter(category__slug=slug_category, type_filter=Specification.CUSTOM).values('slug', 'title')
+                    )})
+            else:
+                return JsonResponse({'error': 'Для данной категории, отсутствуют характеристики'})
+        return render(request, 'app_control/filter_control.html', context)
+
+
+class FilterCreateView(View):
+    """ Представление создания фильтра  """
+
+    def get(self, request, *args, **kwargs):
+        slug_category = self.kwargs.get('category')
+        slug_specification = self.kwargs.get('specification')
+        if not Specification.objects.filter(category__slug=slug_category, slug=slug_specification,
+                                            type_filter=Specification.CUSTOM).exists():
+            raise Http404()
+        model_filter_one = CustomFilterOne.objects.filter(specification__slug=slug_specification)
+        model_filter_two = CustomFilterTwo.objects.filter(specification__slug=slug_specification)
+        specification = Specification.objects.get(slug=slug_specification)
+        form_filter_one = CustomFilterOneForm()
+        form_filter_two = CustomFilterTwoForm()
+        context = {
+            'model_filter_one': model_filter_one,
+            'model_filter_two': model_filter_two,
+            'specification': specification,
+            'form_filter_one': form_filter_one,
+            'form_filter_two': form_filter_two
+        }
+        return render(request, 'app_control/filter_create.html', context)
+
+    def post(self, request, *args, **kwargs):
+        client_data = json.loads(request.body.decode('utf-8'))
+        specification = Specification.objects.get(slug=self.kwargs.get('specification'))
+        if client_data['type'] and client_data['type'] == 'filter_one':
+            if client_data['lessOrEqual'] or client_data['moreOrEqual']:
+                client_data_clean = {'specification': specification.pk, 'lessOrEqual': client_data['lessOrEqual'],
+                                     'moreOrEqual': client_data['moreOrEqual']}
+                form_data = CustomFilterOneForm(client_data_clean)
+                if form_data.is_valid():
+                    model_data = form_data.save()
+                    return JsonResponse({'filter_one': model_to_dict(model_data)})
+                else:
+                    return JsonResponse({'errors': form_data.errors})
+        if client_data['type'] and client_data['type'] == 'filter_two':
+            if client_data['from_digit'] or client_data['before_digit']:
+                client_data_clean = {'specification': specification.pk, 'from_digit': client_data['from_digit'],
+                                     'before_digit': client_data['before_digit']}
+                form_data = CustomFilterTwoForm(client_data_clean)
+                if form_data.is_valid():
+                    model_data = form_data.save()
+                    return JsonResponse({'filter_two': model_to_dict(model_data)})
+                else:
+                    return JsonResponse({'errors': form_data.errors})
+
+        if client_data['type'] and client_data['type'] == 'delete_filter_one':
+            if client_data['pk'] and isint(client_data['pk']) and CustomFilterOne.objects.filter(pk=client_data['pk']).exists():
+                CustomFilterOne.objects.get(pk=client_data['pk']).delete()
+                return JsonResponse({'delete_filter_one': client_data['pk']})
+
+        if client_data['type'] and client_data['type'] == 'delete_filter_two':
+            if client_data['pk'] and isint(client_data['pk']) and CustomFilterTwo.objects.filter(pk=client_data['pk']).exists():
+                CustomFilterTwo.objects.get(pk=client_data['pk']).delete()
+                return JsonResponse({'delete_filter_two': client_data['pk']})
+
+        return JsonResponse({'error': 'ErrorView'})

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %} Управление: Добавление фильтра {% endblock %}
+{% block content %}
+{% load static %}
+<h3 class="text-center mt-3">Форма добавления фильтра</h3>
+<div class="text-center mb-3"><b>"{{ specification }}"</b></div>
+<div class="row mt-3">
+    <div class="col">
+        <div class="text-center"><b>Вида: "Больше, меньше или равно"</b></div>
+        <div class="" id="error_filter_one"></div>
+        <form id="form_filter_one" class="mt-3" action="" method="POST">
+            {% csrf_token %}
+            {{form_filter_one}}
+            <button class="btn btn-success mt-2" type="submit">Добавить</button>
+        </form>
+        <table class="table table-bordered border-primary mt-3">
+            <tr class="text-center">
+                <th scope="col">Меньше или равно</th>
+                <th scope="col">Больше или равно</th>
+                <th scope="col">Удаление</th>
+            </tr>
+            <tbody id="tbody_filter_one">
+            {% for filter in model_filter_one %}
+            <tr id="tr_filter_one_{{ filter.pk }}" class="text-center">
+                <td>{{ filter.lessOrEqual }}</td>
+                <td>{{ filter.moreOrEqual }}</td>
+                <td>
+                    <form data-delete="{{ filter.pk }}" action="" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="col">
+        <div class="text-center"><b>Вида: "От .. до .."</b></div>
+        <div class="" id="error_filter_two"></div>
+        <form id="form_filter_two" class="mt-3" action="" method="POST">
+            {% csrf_token %}
+            {{form_filter_two}}
+            <button class="btn btn-success mt-2" type="submit">Добавить</button>
+        </form>
+        <table class="table table-bordered border-primary mt-3">
+            <tr class="text-center">
+                <th scope="col">От</th>
+                <th scope="col">До</th>
+                <th scope="col">Удаление</th>
+            </tr>
+            <tbody id="tbody_filter_two">
+            {% for filter in model_filter_two %}
+            <tr id="tr_filter_two_{{ filter.pk }}" class="text-center">
+                <td>{{ filter.from_digit }}</td>
+                <td>{{ filter.before_digit }}</td>
+                <td>
+                    <form data-delete="{{ filter.pk }}" action="" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script src="{% static 'js/filter_create.js' %}"></script>
+{% endblock %}

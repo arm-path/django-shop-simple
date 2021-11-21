@@ -127,8 +127,12 @@ class CustomFilterOne(models.Model):
             raise ValidationError('Должна быть заполнено, хотя бы одно поле "Меньше или равно" "Больше или равно"! ')
         if not self.specification.type_filter == 'custom':
             raise ValidationError('Выбранная характеристика должна бысть с кастомным типом фильтра!')
+        if self.lessOrEqual and self.moreOrEqual:
+            if self.lessOrEqual > self.moreOrEqual:
+                raise ValidationError('Значение "меньше или равно" не может быть больше значения "больше или равно"')
 
     class Meta:
+        unique_together = ('specification', 'lessOrEqual', 'moreOrEqual')
         verbose_name = 'Кастомный фильтр №1'
         verbose_name_plural = 'Кастомные фильтры №1'
 
@@ -149,5 +153,6 @@ class CustomFilterTwo(models.Model):
             raise ValidationError('Выбранная характеристика должна бысть с кастомным типом фильтра!')
 
     class Meta:
+        unique_together = ('specification', 'from_digit', 'before_digit')
         verbose_name = 'Кастомный фильтр №2'
         verbose_name_plural = 'Кастомные фильтры №2'

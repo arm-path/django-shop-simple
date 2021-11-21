@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %} Управление: Добавить фильтры {% endblock %}
+{% block content %}
+{% load static %}
+<h3 class="text-center">Добавление кастомных фильтров</h3>
+<div class="text-center">( Добавить катомные фильтры можно только к тем характеристикам, которые имеют кастомный тип. )</div>
+<form action="" method="GET">
+    <div class="mt-3">
+        <span class="input-group-text" id="basic-addon3">Выберите категорию</span>
+        <select id="id_category" name="category" data-action="{% url 'filter_control'%}" class="form-select"
+                aria-label="Default select example" aria-describedby="btn_get_specification">
+            <option value="0" selected>-------</option>
+            {% for category in categories %}
+            <option value="{{ category.slug }}">{{ category.title }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mt-2">
+        <span class="input-group-text " id="basic-addon4">Выберите спецификацию</span>
+        <select id="id_specification" name="specification" class="form-select"
+                aria-label="Default select example" aria-describedby="btn_get_specification">
+            <option value="0" selected>-------</option>
+        </select>
+    </div>
+    <button class="btn btn-success mt-3" type="submit">Добавление кастомного фильтра</button>
+</form>
+
+<script src="{% static 'js/filter_control.js' %}"></script>
+{% endblock %}

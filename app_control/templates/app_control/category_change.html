@@ -1,6 +1,6 @@
 {% extends 'app_control/category_control.html' %}
 
-{% block title %} Изменить: Категория {% endblock %}
+{% block title %} Управление: Изменить категорию "{{ category }}" {% endblock %}
 
 {% block form %}
 
@@ -8,10 +8,10 @@
 
 <!-- Категория -->
 <h3 class="text-center">Изменение категории</h3>
-<a class="text-end" style=" position: absolute; text-decoration: none; color: #ffffff; right: 15px"
-   href="#">
-    <button type="button" class="btn btn-danger text-end pt-0 pb-0">Удалить</button>
-</a>
+<button type="button" class="btn btn-danger pt-0 pb-0 text-end" style="position: absolute; right:15px"
+        data-bs-toggle="modal" data-bs-target="#deleteCategory">Удалить
+</button>
+
 {% for error in form_category.non_field_errors %}
 <div class="alert alert-danger">{{ error }}</div>
 {% endfor %}
@@ -98,6 +98,25 @@
                     <button type="submit" id="id_btn_specification" class="btn btn-success">Добавить</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Удаление категории -->
+<div class="modal fade" id="deleteCategory" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Удаление категории</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'category_delete' slug_category %}" method="post">{% csrf_token %}
+                    <p>Вы уверены что хотите удалить категорию "{{ category }}"?</p>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>

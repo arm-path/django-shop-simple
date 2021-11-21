@@ -1,13 +1,15 @@
 from django.urls import path
 
-from .views import CategoryCreateView, CategoryChangeView
+from .views import CategoryCreateView, CategoryChangeView, CategoryDeleteView
 from .views import SpecificationCreateView, SpecificationDeleteView, SpecificationChangeView
 from .views import ValuesOfSpecificationCreateView, ValueOfSpecificationChangeView, ValueSpecificationDeleteView
-from .views import ControlProductView, CreateProductView, ChangeProductView, ChangeCategoryInProductView
+from .views import ControlProductView, CreateProductView, ChangeProductView, ChangeCategoryInProductView, ProductDeleteView
+from .views import FilterControlView, FilterCreateView
 
 urlpatterns = [
     path('category-create', CategoryCreateView.as_view(), name='category_create'),
     path('category-change/<str:slug>/', CategoryChangeView.as_view(), name='category_change'),
+    path('category-delete/<str:slug>/', CategoryDeleteView.as_view(), name='category_delete'),
     path('specification-create/<str:slug>/', SpecificationCreateView.as_view(), name='specification_create'),
     path('specification-change/<str:slug>/<int:pk>/', SpecificationChangeView.as_view(), name='specification_change'),
     path('specification-delete/<str:slug>/<int:pk>/', SpecificationDeleteView.as_view(), name='specification_delete'),
@@ -17,5 +19,8 @@ urlpatterns = [
     path('product-create/', ControlProductView.as_view(), name='product_create_control'),
     path('product-create/category/<str:slug>/', CreateProductView.as_view(), name='product_create'),
     path('product-change/<str:slug>/', ChangeProductView.as_view(), name='product_change'),
-    path('specification-for-product/<str:slug>/<int:pk>/', ChangeCategoryInProductView.as_view(), name='specification_for_product')
+    path('specification-for-product/<str:slug>/<int:pk>/', ChangeCategoryInProductView.as_view(), name='specification_for_product'),
+    path('product-delete/<str:slug>/', ProductDeleteView.as_view(), name='product_delete'),
+    path('filter-control/', FilterControlView.as_view(), name='filter_control'),
+    path('filter-create/<str:category>/<str:specification>/', FilterCreateView.as_view(), name='filter_create')
 ]

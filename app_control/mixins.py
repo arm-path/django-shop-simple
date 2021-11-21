@@ -37,6 +37,7 @@ class CategoryChangeMixin(BaseMixin):
         form_specification = SpecificationForm()
         context = {
             'slug_category': self.slug_option,
+            'category': self.model_category.title,
             'categories': categories,
             'specifications': specifications,
             'form_specification': form_specification

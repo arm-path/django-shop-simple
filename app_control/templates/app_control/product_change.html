@@ -5,6 +5,9 @@
 {% block content %}
 {% load static %}
 <h3 class="text-center">Изменение продукта</h3>
+<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+    <button type="button" class="btn btn-danger pt-0 pb-0 text-end" data-bs-toggle="modal" data-bs-target="#deleteProduct">Удалить</button>
+</div>
 {% include 'include/messages.html' %}
 <form action="" method="POST" enctype="multipart/form-data">
     {% csrf_token %}
@@ -67,6 +70,26 @@
         </div>
     </div>
 </div>
+
+<!-- Удаление продукта -->
+<div class="modal fade" id="deleteProduct" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Удаление продукта</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'product_delete' product_slug %}" method="post">{% csrf_token %}
+                    <p>Вы уверены что хотите удалить продукт?</p>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="{% static 'js/product_change.js' %}"></script>
 <script src="{% static 'js/product.js' %}"></script>
 
