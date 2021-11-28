@@ -11,13 +11,12 @@ from app_product.models import (Category,
                                 Specification,
                                 ValuesOfSpecification,
                                 Product,
-                                CustomFilterOne,
-                                CustomFilterTwo)
+                                CustomFilter)
 from .forms import (CategoryForm,
                     SpecificationForm,
                     ValuesOfSpecificationForm,
                     ProductForm, ProductAdditionallyForm,
-                    CustomFilterOneForm, CustomFilterTwoForm)
+                    CustomFilterForm)
 from .mixins import (BaseMixin,
                      CategoryChangeMixin,
                      SpecificationCreateAndChangeMixin,
@@ -270,52 +269,33 @@ class FilterCreateView(View):
         if not Specification.objects.filter(category__slug=slug_category, slug=slug_specification,
                                             type_filter=Specification.CUSTOM).exists():
             raise Http404()
-        model_filter_one = CustomFilterOne.objects.filter(specification__slug=slug_specification)
-        model_filter_two = CustomFilterTwo.objects.filter(specification__slug=slug_specification)
+        model_filter = CustomFilter.objects.filter(specification__slug=slug_specification)
         specification = Specification.objects.get(slug=slug_specification)
-        form_filter_one = CustomFilterOneForm()
-        form_filter_two = CustomFilterTwoForm()
+        form_filter = CustomFilterForm()
         context = {
-            'model_filter_one': model_filter_one,
-            'model_filter_two': model_filter_two,
+            'model_filter': model_filter,
             'specification': specification,
-            'form_filter_one': form_filter_one,
-            'form_filter_two': form_filter_two
+            'form_filter': form_filter,
         }
         return render(request, 'app_control/filter_create.html', context)
 
     def post(self, request, *args, **kwargs):
         client_data = json.loads(request.body.decode('utf-8'))
         specification = Specification.objects.get(slug=self.kwargs.get('specification'))
-        if client_data['type'] and client_data['type'] == 'filter_one':
+        if client_data['type'] and client_data['type'] == 'create_filter':
             if client_data['lessOrEqual'] or client_data['moreOrEqual']:
                 client_data_clean = {'specification': specification.pk, 'lessOrEqual': client_data['lessOrEqual'],
                                      'moreOrEqual': client_data['moreOrEqual']}
-                form_data = CustomFilterOneForm(client_data_clean)
+                form_data = CustomFilterForm(client_data_clean)
                 if form_data.is_valid():
                     model_data = form_data.save()
-                    return JsonResponse({'filter_one': model_to_dict(model_data)})
-                else:
-                    return JsonResponse({'errors': form_data.errors})
-        if client_data['type'] and client_data['type'] == 'filter_two':
-            if client_data['from_digit'] or client_data['before_digit']:
-                client_data_clean = {'specification': specification.pk, 'from_digit': client_data['from_digit'],
-                                     'before_digit': client_data['before_digit']}
-                form_data = CustomFilterTwoForm(client_data_clean)
-                if form_data.is_valid():
-                    model_data = form_data.save()
-                    return JsonResponse({'filter_two': model_to_dict(model_data)})
+                    return JsonResponse({'create_filter': model_to_dict(model_data)})
                 else:
                     return JsonResponse({'errors': form_data.errors})
 
-        if client_data['type'] and client_data['type'] == 'delete_filter_one':
-            if client_data['pk'] and isint(client_data['pk']) and CustomFilterOne.objects.filter(pk=client_data['pk']).exists():
-                CustomFilterOne.objects.get(pk=client_data['pk']).delete()
-                return JsonResponse({'delete_filter_one': client_data['pk']})
-
-        if client_data['type'] and client_data['type'] == 'delete_filter_two':
-            if client_data['pk'] and isint(client_data['pk']) and CustomFilterTwo.objects.filter(pk=client_data['pk']).exists():
-                CustomFilterTwo.objects.get(pk=client_data['pk']).delete()
-                return JsonResponse({'delete_filter_two': client_data['pk']})
+        if client_data['type'] and client_data['type'] == 'delete_filter':
+            if client_data['pk'] and isint(client_data['pk']) and CustomFilter.objects.filter(pk=client_data['pk']).exists():
+                CustomFilter.objects.get(pk=client_data['pk']).delete()
+                return JsonResponse({'delete_filter': client_data['pk']})
 
         return JsonResponse({'error': 'ErrorView'})

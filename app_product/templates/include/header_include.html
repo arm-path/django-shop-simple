@@ -8,15 +8,15 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="#">Главная</a>
+                    <a class="nav-link active" aria-current="page" href="{% url 'base' %}">Главная</a>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
                         data-bs-toggle="dropdown" aria-expanded="false">Категории</a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="#">Категория №1</a></li>
-                        <li><a class="dropdown-item" href="#">Категория №2</a></li>
-                        <li><a class="dropdown-item" href="#">Категория №3</a></li>
+                        {% for category in categories %}
+                        <li><a class="dropdown-item" href="{% url 'category_detail' category.slug %}">{{ category.title }}</a></li>
+                        {% endfor %}
                     </ul>
                 </li>
                 <li class="nav-item dropdown">

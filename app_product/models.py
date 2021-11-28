@@ -91,7 +91,7 @@ class Specification(models.Model):
 
 class ValuesOfSpecification(models.Model):
     """ Модель возможных значений характеристик """
-    specification = models.ForeignKey('Specification', on_delete=models.CASCADE, verbose_name='Характеристика')
+    specification = models.ForeignKey('Specification', on_delete=models.CASCADE, related_name='values_sp', verbose_name='Характеристика')
     value = models.CharField('Значение', max_length=154)
 
     def __str__(self):
@@ -108,11 +108,11 @@ class ValuesOfSpecification(models.Model):
         verbose_name_plural = 'Значения характеристик'
 
 
-class CustomFilterOne(models.Model):
-    """ Модель кастомных фильтров №1 """
-    specification = models.ForeignKey('Specification', on_delete=models.CASCADE, verbose_name='Характеристика')
-    lessOrEqual = models.FloatField('Меньше или равно', blank=True, null=True)
-    moreOrEqual = models.FloatField('Больше или равно', blank=True, null=True)
+class CustomFilter(models.Model):
+    """ Модель кастомных фильтров """
+    specification = models.ForeignKey('Specification', on_delete=models.CASCADE, related_name='one_filter', verbose_name='Характеристика')
+    lessOrEqual = models.FloatField('Менее ( До )', blank=True, null=True)
+    moreOrEqual = models.FloatField('Более ( От )', blank=True, null=True)
 
     def __str__(self):
         if self.lessOrEqual and self.moreOrEqual:
@@ -128,31 +128,24 @@ class CustomFilterOne(models.Model):
         if not self.specification.type_filter == 'custom':
             raise ValidationError('Выбранная характеристика должна бысть с кастомным типом фильтра!')
         if self.lessOrEqual and self.moreOrEqual:
-            if self.lessOrEqual > self.moreOrEqual:
-                raise ValidationError('Значение "меньше или равно" не может быть больше значения "больше или равно"')
+            if self.moreOrEqual < 0 or self.lessOrEqual < 0:
+                raise ValidationError('Возможны только положительные значения!')
+            if self.lessOrEqual < self.moreOrEqual:
+                raise ValidationError('Значение "больше или равно" не может быть больше значения "меньше или равно"')
+        if self.lessOrEqual and not self.moreOrEqual:
+            if CustomFilter.objects.filter(lessOrEqual=self.lessOrEqual).exists():
+                if not self.pk and not CustomFilter.objects.filter(pk=self.pk, lessOrEqual=self.lessOrEqual).exists():
+                    raise ValidationError('Данные уже существуют!')
+            if self.lessOrEqual < 0:
+                raise ValidationError('Возможны только положительные значения!')
+        if self.moreOrEqual and not self.lessOrEqual:
+            if CustomFilter.objects.filter(moreOrEqual=self.moreOrEqual).exists():
+                if not self.pk and not CustomFilter.objects.filter(pk=self.pk, lessOrEqual=self.moreOrEqual).exists():
+                    raise ValidationError('Данные уже существуют!')
+            if self.moreOrEqual < 0:
+                raise ValidationError('Возможны только положительные значения!')
 
     class Meta:
         unique_together = ('specification', 'lessOrEqual', 'moreOrEqual')
-        verbose_name = 'Кастомный фильтр №1'
-        verbose_name_plural = 'Кастомные фильтры №1'
-
-
-class CustomFilterTwo(models.Model):
-    """ Модель кастомных фильтров №2 """
-    specification = models.ForeignKey('Specification', on_delete=models.CASCADE, verbose_name='Характеристика')
-    from_digit = models.FloatField('От')
-    before_digit = models.FloatField('До')
-
-    def __str__(self):
-        return f'{self.specification.title} | Фильтр: От {self.from_digit} до {self.before_digit}'
-
-    def clean(self):
-        if self.from_digit > self.before_digit:
-            raise ValidationError('Проверьте правильность значений!')
-        if not self.specification.type_filter == 'custom':
-            raise ValidationError('Выбранная характеристика должна бысть с кастомным типом фильтра!')
-
-    class Meta:
-        unique_together = ('specification', 'from_digit', 'before_digit')
-        verbose_name = 'Кастомный фильтр №2'
-        verbose_name_plural = 'Кастомные фильтры №2'
+        verbose_name = 'Кастомный фильтр'
+        verbose_name_plural = 'Кастомные фильтры'

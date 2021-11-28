@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.fields import CharField
 
-from app_product.models import Category, Specification, ValuesOfSpecification, Product, CustomFilterOne, CustomFilterTwo
+from app_product.models import Category, Specification, ValuesOfSpecification, Product, CustomFilter
 
 
 class CategoryForm(forms.ModelForm):
@@ -101,14 +101,14 @@ class ProductAdditionallyForm(ProductForm):
         widget=forms.Select(attrs={'class': 'form-control'}), queryset=Category.objects.all())
 
 
-class CustomFilterOneForm(forms.ModelForm):
+class CustomFilterForm(forms.ModelForm):
     """ Форма Фильтра """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['specification'].label = 'Характеристика'
-        self.fields['lessOrEqual'].label = 'Меньше или равно'
-        self.fields['moreOrEqual'].label = 'Больше или равно'
+        self.fields['lessOrEqual'].label = 'Меньше, До'
+        self.fields['moreOrEqual'].label = 'Больше, От'
 
     specification = forms.ModelChoiceField(widget=forms.HiddenInput(attrs={'class': 'form-control'}), queryset=Specification.objects.all())
     lessOrEqual = forms.DecimalField(
@@ -119,23 +119,5 @@ class CustomFilterOneForm(forms.ModelForm):
         required=False)
 
     class Meta:
-        model = CustomFilterOne
-        fields = ('specification', 'lessOrEqual', 'moreOrEqual')
-
-
-class CustomFilterTwoForm(forms.ModelForm):
-    """ Форма фильра """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['specification'].label = 'Характеристика'
-        self.fields['from_digit'].label = 'От'
-        self.fields['before_digit'].label = 'До'
-
-    specification = forms.ModelChoiceField(widget=forms.HiddenInput(attrs={'class': 'form-control'}), queryset=Specification.objects.all())
-    from_digit = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Число, целое или дробное'}))
-    before_digit = forms.DecimalField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Число, целое или дробное'}))
-
-    class Meta:
-        model = CustomFilterTwo
-        fields = ('specification', 'from_digit', 'before_digit')
+        model = CustomFilter
+        fields = ('specification', 'moreOrEqual', 'lessOrEqual',)

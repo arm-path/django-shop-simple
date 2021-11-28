@@ -1,0 +1,8 @@
+.ls-title-product {
+    color: #000000;
+    text-decoration: none;
+}
+
+.ls-title-product:hover{
+    color: #0e663d;
+}

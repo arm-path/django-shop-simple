@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %} {{ category.title }} {% endblock %}
+{% block content %}
+{% load static %}
+<div class="row">
+    <div class="col-md-3 border rounded me-3">
+        <h3 class="text-center">Фильтры</h3>
+        <form action="" method="GET" class="font-monospace">
+            <div class="form-check">
+                <div class="fw-bolder text-muted">Рейтинг</div>
+                <input class="form-check-input" type="checkbox" id="rating" name="rating" value="5">
+                <label class="form-check-label" for="rating"> Рейтинг 5 и выше </label>
+            </div>
+            {% for specification in specifications %}
+            {% if specification.values_sp %}
+            {% if specification.type_filter == 'custom' and specification.one_filter.all %}
+            <div class="fw-bolder text-muted mt-3 ">{{specification.title}} ( {{specification.unit}} )</div>
+            {% endif %}
+            {% if specification.type_filter == 'base' %}
+            <div class="fw-bolder text-muted mt-3 ">{{specification.title}}</div>
+            {% endif %}
+            {% if specification.type_filter == 'base' or specification.type_filter == 'custom' and specification.one_filter.all %}
+            <div class="form-check border rounded overflow-auto" style="max-height: 100px">
+                {% if specification.type_filter == 'base' %}
+                {% for value in specification.values_sp.all %}
+                <div class="me-3 ms-2">
+                    <input class="form-check-input" type="checkbox" value="{{ value.value }}" id="id_value_{{value.pk}}"
+                           name="{{specification.slug}}"/>
+                    <label class="form-check-label" for="id_value_{{value.pk}}"> {{ value.value }} {{specification.unit}}</label>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% if specification.type_filter == 'custom' %}
+                {% if specification.one_filter.all %}
+                {% for one_filter in specification.one_filter.all %}
+                <div class="me-3 ms-2">
+                    {% if one_filter.lessOrEqual and one_filter.moreOrEqual %}
+                    <input class="form-check-input" type="checkbox" value="{{ one_filter.pk }}" id="id_value_{{one_filter.pk}}"
+                           name="cm-filter-{{specification.slug}}"/>
+                    <label class="form-check-label" for="id_value_{{one_filter.pk}}">
+                        {{ one_filter.moreOrEqual|floatformat:-2 }} - {{ one_filter.lessOrEqual|floatformat:-2 }}
+                    </label>
+                    {% else %}
+                    {% if one_filter.lessOrEqual %}
+                    <input class="form-check-input" type="checkbox" value="{{ one_filter.pk }}" id="id_value_{{one_filter.pk}}_less"
+                           name="cm-filter-{{specification.slug}}"/>
+                    <label class="form-check-label" for="id_value_{{one_filter.pk}}_less"> Менее {{ one_filter.lessOrEqual|floatformat:-2 }}
+                    </label>
+                    {% endif %}
+                    {% if one_filter.moreOrEqual %}
+                    <input class="form-check-input" type="checkbox" value="{{ one_filter.pk }}" id="id_value_{{one_filter.pk}}_more"
+                           name="cm-filter-{{specification.slug}}"/>
+                    <label class="form-check-label" for="id_value_{{one_filter.pk}}_more"> Более {{ one_filter.moreOrEqual|floatformat:-2 }}
+                    </label>
+                    {% endif %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endif %}
+            </div>
+            {% endif %}
+            {% endif %}
+            {% endfor %}
+            <div class="d-grid gap-2 mt-2 mb-3">
+                <button type="submit" class="btn btn-success">Применить</button>
+            </div>
+        </form>
+
+
+    </div>
+    <div class="col-md-8 border rounded p-1">
+        <h3 class="text-center">{{ category.title }}</h3>
+        {% for product in products %}
+        <div class="card mb-2">
+            <div class="card-body p-1">
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="#">
+                            <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'image/no_image.jpg' %}{% endif %}"
+                                 class="img-fluid">
+                        </a>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="row">
+                            <div class="col-9">
+                                <h5 class="card-title"><a class="ls-title-product" href="#">{{ product.title }}</a></h5
+                                <p class="card-text">{{ product.description|truncatechars:90 }}</p>
+                                <p><b>В наличии:</b> {% if product.product_availability %}Да {% else %}Нет{% endif %}</p>
+                                <p><b>Рейтинг:</b> {{ product.rating }}</p>
+                            </div>
+                            <div class="col-3">
+                                <p class=" font-monospace fs-5 fw-bold">{{ product.price }}</p>
+                                <a href="#" class="btn btn-success">В корзину <i class="bi bi-cart4"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}
