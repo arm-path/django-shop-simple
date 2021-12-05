@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %} Корзина {% endblock %}
+{% block content %}
+{% load static %}
+<h3 class="text-center">Товары в корзине</h3>
+<table class="table table-bordered rounded">
+    <thead class="bg-light">
+    <tr>
+        <th scope="col">№</th>
+        <th scope="col">Название</th>
+        <th scope="col">Изображение</th>
+        <th scope="col">Цена</th>
+        <th scope="col">Количество</th>
+        <th scope="col">Сумма</th>
+        <th scope="col">Действие</th>
+    </tr>
+    </thead>
+    <tbody id="productInCart">
+    <form method="POST" action="">
+        {% csrf_token %}
+        {% for product in cart.products.all %}
+        <tr>
+            <th scope="row">{{ forloop.counter }}</th>
+            <td>{{ product.product.title }}</td>
+            <td>
+                <img style="max-width: 70px"
+                     src="{% if product.product.image %}{{ product.product.image.url }}{% else %}{% static 'image/no_image.jpg' %}{% endif %}">
+            </td>
+            <td>{{ product.product.price }}</td>
+            <td>
+                <input value="{{ product.quantity }}" type="number"
+                       data-count="{{ product.id }}" data-cart="{{ cart.id }}"
+                       data-url="{% url 'product_to_cart_change_quantity' product.id %}"
+                       class="form-control" style=" display: inline; max-width: 100px" min="0">
+            </td>
+            <td class="js-total">{{ product.total }}</td>
+            <td>
+                <button type="button" class="btn btn-danger"><i class="bi bi-trash"></i></button>
+            </td>
+        </tr>
+        {% endfor %}
+    </form>
+    <tr>
+        <td colspan="5">
+            <b>Итого:</b>
+        </td>
+        <td id="cartSum" colspan="2" class="bg-light">
+            {{ cart.sum }}
+        </td>
+    </tr>
+    </tbody>
+</table>
+<button class="btn btn-success">Оформить заказ</button>
+<script src="{% static 'app_product/js/cart.js' %}"></script>
+{% endblock %}

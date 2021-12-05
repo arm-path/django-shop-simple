@@ -1,7 +1,9 @@
 from slugify import slugify
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
 
+from app_profile.models import Customer
 from .functions import is_digit
 
 
@@ -149,3 +151,37 @@ class CustomFilter(models.Model):
         unique_together = ('specification', 'lessOrEqual', 'moreOrEqual')
         verbose_name = 'Кастомный фильтр'
         verbose_name_plural = 'Кастомные фильтры'
+
+
+class ProductsInCart(models.Model):
+    """ Модель продуктов в корзине """
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Продукт')
+    cart = models.ForeignKey('CartOrOrder', on_delete=models.CASCADE, related_name='cart_with_products', verbose_name='Корзина')
+    quantity = models.IntegerField('Количество', default=1)
+    total = models.DecimalField('Сумма', max_digits=12, decimal_places=2, default=0.0)
+
+    def __str__(self):
+        return f'{self.product.title} в количестве {self.quantity} на сумму {self.total} в корзине {self.cart}'
+
+    class Meta:
+        verbose_name = 'Продукт в корзине'
+        verbose_name_plural = 'Продукты в корзинах'
+
+
+class CartOrOrder(models.Model):
+    """ Модель корзины """
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, verbose_name='Покупатель')
+    products = models.ManyToManyField(ProductsInCart, related_name='product_in_cart', verbose_name='Продукты')
+    quantity = models.IntegerField('Количество', default=0)
+    sum = models.DecimalField('Сумма', max_digits=12, decimal_places=2, default=0.00)
+    is_cart = models.BooleanField('Корзина', default=True)
+
+    def __str__(self):
+        if self.is_cart:
+            return f'Корзина пользователя: {self.customer.user.username}'
+        else:
+            return f'Заказ пользователя: {self.customer.user.username}'
+
+    class Meta:
+        verbose_name = 'Корзина-Заказ'
+        verbose_name_plural = 'Корзины-Заказы'

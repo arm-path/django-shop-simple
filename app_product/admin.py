@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import Category, Product, Specification, ValuesOfSpecification, CustomFilter
+from .models import CartOrOrder, ProductsInCart
 
 
 @admin.register(Category)
@@ -46,3 +47,15 @@ class CustomFilterAdmin(admin.ModelAdmin):
     """ Представление кастомных фильтров №1 в административной панели """
     list_display = ('specification', 'lessOrEqual', 'moreOrEqual')
     list_filter = ('specification__title',)
+
+
+@admin.register(CartOrOrder)
+class CartOrOrderAdmin(admin.ModelAdmin):
+    """ Представление корзины в административной панели """
+    pass
+
+
+@admin.register(ProductsInCart)
+class ProductsInCartAdmin(admin.ModelAdmin):
+    """ Представление продукта в корзине """
+    pass

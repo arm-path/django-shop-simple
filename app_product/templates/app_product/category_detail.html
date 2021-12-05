@@ -76,7 +76,7 @@
             <div class="card-body p-1">
                 <div class="row">
                     <div class="col-md-3">
-                        <a href="#">
+                        <a href="{% url 'product_detail' product.slug %}">
                             <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'image/no_image.jpg' %}{% endif %}"
                                  class="img-fluid">
                         </a>
@@ -84,15 +84,22 @@
                     <div class="col-md-9">
                         <div class="row">
                             <div class="col-9">
-                                <h5 class="card-title"><a class="ls-title-product" href="#">{{ product.title }}</a></h5
+                                <h5 class="card-title">
+                                    <a class="ls-title-product" href="{% url 'product_detail' product.slug%}">{{ product.title }}</a>
+                                </h5>
                                 <p class="card-text">{{ product.description|truncatechars:90 }}</p>
                                 <p><b>В наличии:</b> {% if product.product_availability %}Да {% else %}Нет{% endif %}</p>
                                 <p><b>Рейтинг:</b> {{ product.rating }}</p>
                             </div>
+
                             <div class="col-3">
-                                <p class=" font-monospace fs-5 fw-bold">{{ product.price }}</p>
-                                <a href="#" class="btn btn-success">В корзину <i class="bi bi-cart4"></i></a>
+                                <form action="{% url 'product_to_cart' product.slug %}" method="POST">
+                                    {% csrf_token %}
+                                    <p class=" font-monospace fs-5 fw-bold">{{ product.price }}</p>
+                                    <button type="submit" class="btn btn-success">В корзину <i class="bi bi-cart4"></i></button>
+                                </form>
                             </div>
+
                         </div>
                     </div>
                 </div>
