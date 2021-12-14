@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %} Регистрация пользователя {% endblock %}
+{% block content %}
+<div class="container create-user" style="width:50%">
+    <h3 class="text-center mb-3">Регистрация пользователя</h3>
+
+    <form action="" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {% if user_form.errors %}
+        {% for user in user_form %}
+        {% if user.errors %}
+        <div class="alert alert-danger" role="alert"> {{ user.label_tag }} {{ user.errors }}</div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        {% if customer_form.errors %}
+        {% for customer in customer_form %}
+        {% if customer.errors %}
+        <div class="alert alert-danger" role="alert"> {{ customer.label_tag }} {{ customer.errors }}</div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-6">
+                <label for="{{ user_form.username.id_for_label }}">
+                    {{ user_form.username.label }}: <span class="required-field">*</span>
+                </label>
+                {{ user_form.username }}
+            </div>
+            <div class="col-md-6">
+                <label for="{{ customer_form.phone.id_for_label }}">{{ customer_form.image_profile.label }}:</label>
+                {{ customer_form.image_profile }}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <label for="{{ user_form.password1.id_for_label }}">
+                    {{ user_form.password1.label }}: <span class="required-field">*</span>
+                </label>
+                {{ user_form.password1 }}
+            </div>
+            <div class="col-md-6">
+                <label for="{{ user_form.password2.id_for_label }}">
+                    {{ user_form.password2.label }}: <span class="required-field">*</span>
+                </label>
+                {{ user_form.password2 }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <label for="{{ user_form.first_name.id_for_label }}">
+                    {{ user_form.first_name.label }}: <span class="required-field">*</span>
+                </label>
+                {{ user_form.first_name }}
+            </div>
+            <div class="col-md-6">
+                <label for="{{ user_form.last_name.id_for_label }}">
+                    {{ user_form.last_name.label }}: <span class="required-field">*</span>
+                </label>
+                {{ user_form.last_name }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <label for="{{ user_form.email.id_for_label }}">
+                    {{ user_form.email.label }}: <span class="required-field">*</span>
+                </label>
+                {{ user_form.email }}
+            </div>
+            <div class="col-md-6">
+                <label for="{{ customer_form.phone.id_for_label }}">
+                    {{ customer_form.telephone.label }}: <span class="required-field">*</span>
+                </label>
+                {{ customer_form.telephone }}
+            </div>
+        </div>
+        <label for="customer_form.date_of_birth.id_for_label">{{ customer_form.date_of_birth.label }}:</label>
+        {{ customer_form.date_of_birth }}
+        <label for="customer_form.address.id_for_label">{{ customer_form.address.label }}: </label>
+        {{ customer_form.address }}
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-success mt-3">Регистрация</button>
+        </div>
+    </form>
+</div>
+
+
+{% endblock %}

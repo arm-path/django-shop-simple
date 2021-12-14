@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %} Профиль | {{user.username}} {% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="container border rounded p-0" style="width:50%">
+    <h3 class="text-center mb-3 p-2">Профиль пользователя</h3>
+    <div class="row p-2">
+        <div class="col-md-4">
+            {% if user.customer.image_profile %}
+            <img class="img-fluid" src="{{ user.customer.image_profile.url }}">
+            {% else %}
+            <img class="img-fluid" src="{% static 'image/no_image.jpg' %}">
+            {% endif %}
+        </div>
+        <div class="col-md-8 font-monospace">
+            <div><b>Имя:</b> {{ user.first_name }}</div>
+            <div><b>Фамилие:</b>{{ user.last_name }}</div>
+            <div><b>Электронная почта:</b>{{ user.email }}</div>
+            <div><b>Телефон:</b> {% if user.customer.telephone %}{{ user.customer.telephone }}{% endif %}</div>
+            <div><b>Дата рождения:</b>{% if user.customer.date_of_birth %} {{ user.customer.date_of_birth }} {% endif %}</div>
+            <div><b>Адрес:</b>{% if user.customer.address %}{{ user.customer.address }} {% endif %}</div>
+            <div class="d-grid gap-2 mt-3"><a href="{% url 'change_profile' %}" class="btn btn-success">Редактировать</a></div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

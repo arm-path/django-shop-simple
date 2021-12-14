@@ -1,0 +1,71 @@
+[33mcommit c9a1b2312f0efa379cbc9b2cc5704ab783fce878[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m)[m
+Author: arm-path <arm.path.py@gmail.com>
+Date:   Sun Dec 5 21:13:17 2021 +0300
+
+    Product view. Cart, ProductToCart
+
+[33mcommit 61ddddb6415938ff3fe6f05068ebb3145a9d02ea[m
+Author: arm-path <arm.path.py@gmail.com>
+Date:   Sun Nov 28 19:13:08 2021 +0300
+
+    Changing custom filters. Working with category view and product filtering.
+
+[33mcommit 5291c30331812d617f72c7db6f3e28b14a42d171[m
+Author: arm-path <arm.path.py@gmail.com>
+Date:   Sun Nov 21 18:47:30 2021 +0300
+
+    CreateView and DeleteView CustomFilterOne, CustomFilterTwo and DeleteView Category and Product
+
+[33mcommit bd091528a7af05ce53016d51d3052c45c74a2e18[m
+Author: arm-path <arm.path.py@gmail.com>
+Date:   Sun Nov 14 20:56:57 2021 +0300
+
+    Change Product. Structural changes Create Product
+
+[33mcommit 5e3ed9753bfdef58f4373cabf91a0ac07b70f40d[m
+Author: arm-path <arm.path.py@gmail.com>
+Date:   Wed Nov 10 22:45:32 2021 +0300
+
+    Create Product. Change of structure. Error correction
+
+[33mcommit cd8f4e3f8f3d6b1faac22f385674dca2c50c6960[m
+Author: arm-path <arm.path.py@gmail.com>
+Date:   Sat Nov 6 17:40:20 2021 +0300
+
+    Create, Change and Delete Specification and Value specification
+
+[33mcommit 1138eeb8ceb01a949733592ba532b2344dcc0a6b[m
+Author: arm-path <arm.path.py@gmail.com>
+Date:   Tue Nov 2 22:58:17 2021 +0300
+
+    Work. Specification create 1
+
+[33mcommit be49903b28175cbf5fba3ce90f05a3dbd05ed9fa[m
+Author: arm-path <arm.path.py@gmail.com>
+Date:   Sun Oct 31 21:59:53 2021 +0300
+
+    View: Create Category. Begin ChangeCategory
+
+[33mcommit c519379e55a0e2dd834b6db8c6851fed15829f8d[m
+Author: arm-path <arm.path.py@gmail.com>
+Date:   Sat Oct 30 22:10:27 2021 +0300
+
+    Work with Form. Add: Create Category
+
+[33mcommit ffb9a6ffd4b0f91f167e9aa409886dae40255103[m
+Author: arm-path <arm.path.py@gmail.com>
+Date:   Thu Oct 28 22:04:34 2021 +0300
+
+    Work with model. Building logic, validating model fields
+
+[33mcommit 8a06f3e3a35a93ceb878bb1476349c31aa12e016[m
+Author: arm-path <arm.path.py@gmail.com>
+Date:   Wed Oct 27 23:08:16 2021 +0300
+
+    Work with models. Add models in admin.py
+
+[33mcommit 24a5461a036b8862f8f362a4632a130a3d7627a7[m
+Author: arm-path <arm.path.py@gmail.com>
+Date:   Mon Oct 25 22:15:19 2021 +0300
+
+    Initial commit

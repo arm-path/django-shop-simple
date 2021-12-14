@@ -48,3 +48,14 @@
     font-size: 1vw;
     opacity: 1 !important
 }
+
+/* application app_profile */
+.create-user{
+    background-color: #efefef;
+    padding: 1.3%;
+    border-radius: 1em;
+}
+
+.required-field{
+    color: #a62d2a;
+}

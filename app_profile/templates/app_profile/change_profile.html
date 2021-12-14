@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %} Профиль | {{user.username}} {% endblock %}
+
+{% block content %}
+<div class="container border rounded p-0" style="width:50%">
+    <h3 class="text-center mb-3 p-2">Редактирование профиля</h3>
+    <div class="p-2">
+        <form action="" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ user_form }}
+            {{ customer_form }}
+            <div class="d-grid gap-2 mt-3">
+                <button class="btn btn-success" type="submit">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+{% endblock %}
