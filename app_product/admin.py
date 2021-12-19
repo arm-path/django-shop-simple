@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .models import Category, Product, Specification, ValuesOfSpecification, CustomFilter
 from .models import CartOrOrder, ProductsInCart
+from .models import Review
 
 
 @admin.register(Category)
@@ -59,3 +60,19 @@ class CartOrOrderAdmin(admin.ModelAdmin):
 class ProductsInCartAdmin(admin.ModelAdmin):
     """ Представление продукта в корзине """
     pass
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    """ Представление отзвов в административной панели """
+    list_display = ('pk', 'get_product', 'get_username', 'rating', 'review', 'date_of_creation')
+    list_filter = ('customer__user__username', 'product__title', 'rating')
+
+    def get_username(self, obj):
+        return obj.customer.user.username
+
+    def get_product(self, obj):
+        return obj.product.title
+
+    get_username.short_description = 'Пользователь'
+    get_product.short_description = 'Продукт'

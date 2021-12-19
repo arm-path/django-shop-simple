@@ -185,3 +185,20 @@ class CartOrOrder(models.Model):
     class Meta:
         verbose_name = 'Корзина-Заказ'
         verbose_name_plural = 'Корзины-Заказы'
+
+
+class Review(models.Model):
+    """ Модель отзывов """
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, verbose_name='Покупатель')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Продукт')
+    date_of_creation = models.DateTimeField('Дата создания', auto_now_add=True)
+    rating = models.PositiveIntegerField('Рейтинг', default=0)
+    review = models.CharField('Отзыв', max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.customer.user.username} : {self.rating}'
+
+    class Meta:
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
+        ordering = ['-date_of_creation']

@@ -2,10 +2,12 @@ import json
 from django.shortcuts import render, redirect
 from django.views.generic import View
 from django.http import JsonResponse, Http404
+from django.forms.models import model_to_dict
 
 from app_profile.models import Customer
 from .mixins import FilterCategoryMixin
-from .models import Category, Product, Specification, CartOrOrder, ProductsInCart
+from .models import Category, Product, Specification, CartOrOrder, ProductsInCart, Review
+from .forms import ReviewForm
 
 
 class BaseView(View):
@@ -37,11 +39,57 @@ class ProductDetailView(View):
     """ Представление продукта """
 
     def get(self, request, *args, **kwargs):
+        product = Product.objects.get(slug=self.kwargs['slug'])
         context = {
             'categories': Category.objects.all(),
-            'product': Product.objects.get(slug=self.kwargs['slug'])
+            'product': product,
+            'reviews': Review.objects.filter(product=product)
         }
         return render(request, 'app_product/product_detail.html', context)
+
+    def post(self, request, *args, **kwargs):
+        form_data = json.loads(request.body.decode('utf-8'))
+        rating = str(form_data.get('rating' or None))
+        review = str(form_data.get('review' or None))
+        if review is not None and rating is not None:
+            if not rating.isnumeric():
+                return JsonResponse({'errors': 'rating - Должен иметь целочисленный тип данных'})
+            rating = int(rating)
+            if not rating <= 5 and rating >= 0:
+                return JsonResponse({'errors': 'rating - Должен быть в диапазоне от 0-5'})
+            if not Customer.objects.filter(user=request.user):
+                Customer.objects.create(user=request.user)
+            if Review.objects.filter(customer=Customer.objects.get(user=request.user),
+                                     product=Product.objects.get(slug=self.kwargs['slug'])).exists():
+                return JsonResponse({'error_review': 'Отзыв не добавлен, Вы ранее писали отзыв о продукте!'})
+            form_data = ReviewForm({
+                'customer': Customer.objects.get(user=request.user).pk,
+                'product': Product.objects.get(slug=self.kwargs['slug']),
+                'rating': rating, 'review': review
+            })
+            if form_data.is_valid():
+                model_data = form_data.save()
+                model_dict = model_to_dict(model_data)
+                model_dict['customer'] = request.user.__str__()
+                return JsonResponse({'review': model_dict})
+        return JsonResponse({'errors': 'Отзыв не добавлен!'})
+
+
+class ReviewDeleteView(View):
+    """ Представление уадаления отзыва """
+
+    def post(self, request, *args, **kwargs):
+        form_data = json.loads(request.body.decode('utf-8'))
+        review = form_data.get('review' or None)
+        if not review:
+            return JsonResponse({'errors': 'Получены неожиданные данные!'})
+        if not review.isnumeric():
+            return JsonResponse({'errors': 'Получены неожиданные данные!'})
+        customer = customer = Customer.objects.get(user=request.user)
+        if Review.objects.filter(pk=review, customer=customer).exists():
+            Review.objects.get(pk=review, customer=customer).delete()
+            return JsonResponse({'review_delete': review})
+        return JsonResponse({'errors': 'Что то пошло не так!'})
 
 
 class AddProductToCart(View):

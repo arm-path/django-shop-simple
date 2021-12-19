@@ -36,20 +36,18 @@
             <a href="{% url 'detail_profile' %}" type="submit" class="btn me-2 btn-success">
                 Профиль <i class="bi bi-person-circle"></i> {{user.username}}
             </a>
-            <a href="{% url 'logaut' %}">
-                <a href="{% url 'cart' %}" type="submit" class="btn me-2 btn-success">Корзина <i class="bi bi-cart4"></i></a>
-                <a href="{% url 'logout' %}">
-                    <button type="button" class="btn me-2 btn-success">Выход</button>
-                </a>
-
-                {% else %}
-                <a href="{% url 'authentication'%}">
-                    <button class="btn btn-outline-success me-2" type="button">Вход</button>
-                </a>
-                <a href="{% url 'registration' %}">
-                    <button class="btn btn-outline-success " type="submit">Регистрация</button>
-                </a>
-                {% endif %}
+            <a href="{% url 'cart' %}" type="submit" class="btn me-2 btn-success">Корзина <i class="bi bi-cart4"></i></a>
+            <a href="{% url 'logout' %}">
+                <button type="button" class="btn me-2 btn-success">Выход</button>
+            </a>
+            {% else %}
+            <a href="{% url 'authentication'%}">
+                <button class="btn btn-outline-success me-2" type="button">Вход</button>
+            </a>
+            <a href="{% url 'registration' %}">
+                <button class="btn btn-outline-success " type="submit">Регистрация</button>
+            </a>
+            {% endif %}
         </div>
     </div>
 </nav>

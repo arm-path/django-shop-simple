@@ -51,28 +51,40 @@
 </div>
 <div>
     <h3>Отзывы</h3>
-    <form action="#" method="POST">
+    <form id="reviewCreateForm" action="{% url 'product_detail' product.slug %}" method="POST">
+        {% csrf_token %}
         <div class="row">
             <div class="rating">
-                <input type="radio" name="rating" value="5" id="5"> <label for="5">☆</label>
-                <input type="radio" name="rating" value="4" id="4"> <label for="4">☆</label>
-                <input type="radio" name="rating" value="3" id="3"><label for="3">☆</label>
-                <input type="radio" name="rating" value="2" id="2"><label for="2">☆</label>
-                <input type="radio" name="rating" value="1" id="1"><label for="1">☆</label>
+                <input type="radio" name="rating" value="5" id="rating5"><label for="rating5">☆</label>
+                <input type="radio" name="rating" value="4" id="rating4"><label for="rating4">☆</label>
+                <input type="radio" name="rating" value="3" id="rating3"><label for="rating3">☆</label>
+                <input type="radio" name="rating" value="2" id="rating2"><label for="rating2">☆</label>
+                <input type="radio" name="rating" value="1" id="rating1"><label for="rating1">☆</label>
             </div>
-            <div class="col-md-9"><input type="text" class="form-control"></div>
-            <div class="col-md-3">
+            <div class="col-md-9"><input type="text" id="reviewText" class="form-control"></div>
+            <small id="reviewCreateFormError" class="text-danger"></small>
+            <div class="col-md-3 mt-2">
                 <button type="submit" class="btn btn-success">Отправить</button>
             </div>
         </div>
     </form>
     <hr/>
-    <div class="mt-2 mb-5">
-        <div><b> Имя пользователя </b></div>
-        <div>
-            <div class="col-md-auto "> Рейтинг:</div>
+    <div id="reviewList" class="mt-2 mb-5">
+        {% for review in reviews %}
+        <div id="reviewDetail_{{review.pk}}" class="mt-2">
+            <div><b class="review-user">{{ review.customer }}</b><i class="bi bi-star"></i> {{ review.rating }}</div>
+            <small style="color: #5d5d64"><i>{{ review.date_of_creation }}</i></small>
+            <div><b>Отзыв:</b> {{ review.review }}</div>
+            <form id="reviewDeleteForm_{{review.pk}}" action="{% url 'review_delete' %}" method="POST">
+                {% csrf_token %}
+                {% if review.customer.user == request.user %}
+                <button type="submit" class="review-delete-link ">Удалить</button>
+                {% endif %}
+            </form>
         </div>
-        <div> Отзыв: Lorem ipsum dolor sit amet.</div>
+        {% endfor %}
     </div>
+    {% include 'include/pagination.html' %}
 </div>
+<script src="{% static 'app_product/js/review.js' %}"></script>
 {% endblock %}

@@ -50,12 +50,30 @@
 }
 
 /* application app_profile */
-.create-user{
+.create-user {
     background-color: #efefef;
     padding: 1.3%;
     border-radius: 1em;
 }
 
-.required-field{
+.required-field {
     color: #a62d2a;
 }
+
+.review-user {
+    color: #2274a6;
+    margin-right: 15px;
+}
+
+.review-delete-link {
+    padding: 0;
+    border: None;
+    background: None;
+    text-decoration: none;
+    color: #a62d2a;
+}
+
+.review-delete-link:hover, .review-delete-link:active {
+    color: #db5966;
+}
+
