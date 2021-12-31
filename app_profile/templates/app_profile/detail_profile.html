@@ -4,26 +4,94 @@
 
 {% block content %}
 {% load static %}
-<div class="container border rounded p-0" style="width:50%">
-    <h3 class="text-center mb-3 p-2">Профиль пользователя</h3>
-    <div class="row p-2">
-        <div class="col-md-4">
-            {% if user.customer.image_profile %}
-            <img class="img-fluid" src="{{ user.customer.image_profile.url }}">
-            {% else %}
-            <img class="img-fluid" src="{% static 'image/no_image.jpg' %}">
+<div class="container" style="width:80%">
+    <div class="row">
+        <div class="col-md-4 border ">
+            <h4 class="text-center mb-3 p-2">Профиль пользователя</h4>
+            <div class="row p-2">
+                <div class="col-md-4">
+                    {% if user.customer.image_profile %}
+                    <img class="img-fluid" src="{{ user.customer.image_profile.url }}">
+                    {% else %}
+                    <img class="img-fluid" src="{% static 'image/no_image.jpg' %}">
+                    {% endif %}
+                </div>
+                <div class="col-md-8 font-monospace">
+                    <div><b>Имя:</b> {{ user.first_name }}</div>
+                    <div><b>Фамилие:</b>{{ user.last_name }}</div>
+                    <div><b>Электронная почта:</b>{{ user.email }}</div>
+                    <div><b>Телефон:</b> {% if user.customer.telephone %}{{ user.customer.telephone }}{% endif %}</div>
+                    <div><b>Дата рождения:</b>{% if user.customer.date_of_birth %} {{ user.customer.date_of_birth }} {% endif %}</div>
+                    <div><b>Адрес:</b>{% if user.customer.address %}{{ user.customer.address }} {% endif %}</div>
+
+                </div>
+            </div>
+            <div class="d-grid gap-2 mt-3 mb-3"><a href="{% url 'change_profile' %}" class="btn btn-success">Редактировать</a></div>
+        </div>
+        <div class="col-md-8 border">
+            <h4 class="text-center mb-3 p-2">Заказы пользователя</h4>
+
+            {% for order in page_obj %}
+            <div class="d-grid gap-2">
+                <button type="button" class="alert alert-primary p-1" style="text-align: left" role="alert" data-bs-toggle="modal"
+                        data-bs-target="#exampleModal_{{order.pk }}">
+                    <div><b>Заказ:</b> №{{ order.pk }}</div>
+                    <div><b>Сумма заказа:</b> {{ order.order.sum }} руб.</div>
+                    <div><b>Статус заказа:</b> {{ order.order_status }}</div>
+                </button>
+            </div>
+
+            <!-- Products -->
+            <div class="modal fade" id="exampleModal_{{order.pk }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Список продуктов</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <table class="table table-bordered rounded">
+                                <thead class="bg-light">
+                                <tr>
+                                    <th scope="col">Название</th>
+                                    <th scope="col">Изображение</th>
+                                    <th scope="col">Цена</th>
+                                    <th scope="col">Количество</th>
+                                    <th scope="col">Сумма</th>
+                                </tr>
+                                </thead>
+                                {% for product in order.order.products.all %}
+                                <tr>
+                                    <td>{{ product.product.title }}</td>
+                                    <td>
+                                        <img style="max-width: 70px"
+                                             src="{% if product.product.image %}{{ product.product.image.url }}{% else %}{% static 'image/no_image.jpg' %}{% endif %}">
+                                    </td>
+                                    <td>{{ product.product.price }}</td>
+                                    <td>{{ product.quantity }}</td>
+                                    <td class="js-total">{{ product.total }}</td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% if not page_obj %}
+            <div class="alert alert-warning text-center" role="alert">
+                Список заказов пуст!
+            </div>
             {% endif %}
+
+            {% include 'include/pagination.html' %}
+
         </div>
-        <div class="col-md-8 font-monospace">
-            <div><b>Имя:</b> {{ user.first_name }}</div>
-            <div><b>Фамилие:</b>{{ user.last_name }}</div>
-            <div><b>Электронная почта:</b>{{ user.email }}</div>
-            <div><b>Телефон:</b> {% if user.customer.telephone %}{{ user.customer.telephone }}{% endif %}</div>
-            <div><b>Дата рождения:</b>{% if user.customer.date_of_birth %} {{ user.customer.date_of_birth }} {% endif %}</div>
-            <div><b>Адрес:</b>{% if user.customer.address %}{{ user.customer.address }} {% endif %}</div>
-            <div class="d-grid gap-2 mt-3"><a href="{% url 'change_profile' %}" class="btn btn-success">Редактировать</a></div>
-        </div>
+
     </div>
 </div>
-</div>
+
 {% endblock %}

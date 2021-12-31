@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import Category, Product, Specification, ValuesOfSpecification, CustomFilter
-from .models import CartOrOrder, ProductsInCart
+from .models import CartOrOrder, ProductsInCart, Order, PickUpPoints
 from .models import Review
 
 
@@ -76,3 +76,13 @@ class ReviewAdmin(admin.ModelAdmin):
 
     get_username.short_description = 'Пользователь'
     get_product.short_description = 'Продукт'
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(PickUpPoints)
+class PickUpPoints(admin.ModelAdmin):
+    pass

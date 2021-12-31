@@ -1,8 +1,9 @@
-from django.contrib.auth import login
-from django.shortcuts import render, redirect
 from django.views.generic import View
+from django.core.paginator import Paginator
+from django.shortcuts import render, redirect
+from django.contrib.auth import login
 
-from app_product.models import Category
+from app_product.models import Category, CartOrOrder, Order
 from .forms import CreateUserForm, ChangeUserForm, CreateCustomerForm, AuthenticationUserForm
 from .models import Customer
 
@@ -61,8 +62,14 @@ class DetailProfileView(View):
     """ Представление профиля пользователя-покупателя """
 
     def get(self, request, *args, **kwargs):
+        customer = Customer.objects.filter(user=request.user).first()
+        paginator = Paginator(Order.objects.filter(order__customer=customer, order__is_cart=False), 6)
+        page = request.GET.get('page')
+        page_obj = paginator.get_page(page)
+
         context = {
-            'categories': Category.objects.all()
+            'categories': Category.objects.all(),
+            'page_obj': page_obj
         }
         return render(request, 'app_profile/detail_profile.html', context)
 

@@ -3,11 +3,14 @@ from django.shortcuts import render, redirect
 from django.views.generic import View
 from django.http import JsonResponse, Http404
 from django.forms.models import model_to_dict
+from django.db.models import Sum
+from django.core.paginator import Paginator
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from app_profile.models import Customer
-from .mixins import FilterCategoryMixin
+from .mixins import FilterCategoryMixin, OrderCheckMixin
 from .models import Category, Product, Specification, CartOrOrder, ProductsInCart, Review
-from .forms import ReviewForm
+from .forms import ReviewForm, OrderForm
 
 
 class BaseView(View):
@@ -15,8 +18,14 @@ class BaseView(View):
 
     @staticmethod
     def get(request, *args, **kwargs):
-        categories = Category.objects.all()
-        return render(request, 'base.html', {'categories': categories})
+        paginator = Paginator(Product.objects.all(), 6)
+        page = request.GET.get('page')
+        page_obj = paginator.get_page(page)
+        context = {
+            'categories': Category.objects.all(),
+            'page_obj': page_obj
+        }
+        return render(request, 'app_product/product_list.html', context)
 
 
 class CategoryDetailView(FilterCategoryMixin, View):
@@ -40,12 +49,22 @@ class ProductDetailView(View):
 
     def get(self, request, *args, **kwargs):
         product = Product.objects.get(slug=self.kwargs['slug'])
+        paginator = Paginator(Review.objects.filter(product=product), 2)
+        page = request.GET.get('page')
+        page_obj = paginator.get_page(page)
         context = {
             'categories': Category.objects.all(),
             'product': product,
-            'reviews': Review.objects.filter(product=product)
+            'page_obj': page_obj,
+            'page': page
         }
         return render(request, 'app_product/product_detail.html', context)
+
+
+class ReviewAddView(LoginRequiredMixin, View):
+    """ Представление добавления отзыва  """
+
+    login_url = '/profile/authentication/'
 
     def post(self, request, *args, **kwargs):
         form_data = json.loads(request.body.decode('utf-8'))
@@ -75,8 +94,10 @@ class ProductDetailView(View):
         return JsonResponse({'errors': 'Отзыв не добавлен!'})
 
 
-class ReviewDeleteView(View):
+class ReviewDeleteView(LoginRequiredMixin, View):
     """ Представление уадаления отзыва """
+
+    login_url = '/profile/authentication/'
 
     def post(self, request, *args, **kwargs):
         form_data = json.loads(request.body.decode('utf-8'))
@@ -92,8 +113,10 @@ class ReviewDeleteView(View):
         return JsonResponse({'errors': 'Что то пошло не так!'})
 
 
-class AddProductToCart(View):
+class AddProductToCart(LoginRequiredMixin, View):
     """ Представление добавления в корзину """
+
+    login_url = '/profile/authentication/'
 
     def post(self, request, *args, **kwargs):
         product_slug = self.kwargs.get('slug') or None
@@ -107,53 +130,72 @@ class AddProductToCart(View):
             if not CartOrOrder.objects.filter(customer=customer, is_cart=True).exists():
                 CartOrOrder.objects.create(customer=customer)
             cart = CartOrOrder.objects.filter(customer=customer, is_cart=True).first()
-            product_in_cart = ProductsInCart.objects.create(product=product, cart=cart, total=product.price)
-            cart.products.add(product_in_cart)
-            cart.sum = cart.sum + product_in_cart.total
-            cart.save()
-
+            if product.product_availability:
+                if not cart.products.filter(product=product, cart=cart, total=product.price).exists():
+                    product_in_cart = ProductsInCart.objects.create(product=product, cart=cart, total=product.price)
+                    cart.products.add(product_in_cart)
+                    cart.save()
         return redirect('/cart/')
 
 
-class ChangeQuantityProductToCartView(View):
+class ChangeQuantityProductToCartView(LoginRequiredMixin, View):
     """ Представление изменения количества продукта """
+
+    login_url = '/profile/authentication/'
 
     def post(self, request, *args, **kwargs):
         client_data = json.loads(request.body.decode('utf-8'))
-        if (client_data.get('quantity') and client_data.get('product_in_cart') and client_data.get('cart') and
-                client_data.get('quantity').isdigit() and client_data.get('product_in_cart').isdigit() and
-                client_data.get('cart').isdigit()):
-            cart = int(client_data.get('cart'))
-            product_in_cart = int(client_data.get('product_in_cart'))
-            product_in_cart_quantity = int(client_data.get('quantity'))
-            if product_in_cart_quantity <= 0:
-                return JsonResponse({'error': 'Ошибка в количестве продукта!'})
-            if not ProductsInCart.objects.filter(pk=product_in_cart).exists():
-                return JsonResponse({'error': 'Продукт не найден!'})
-            if not CartOrOrder.objects.filter(pk=cart, is_cart=True).exists():
-                return JsonResponse({'error': 'Корзина не найдена!'})
-            product_in_cart_model = ProductsInCart.objects.get(pk=product_in_cart)
-            cart = CartOrOrder.objects.get(pk=cart)
-            product_in_cart_model.quantity = product_in_cart_quantity
-            cart.sum = cart.sum - product_in_cart_model.total
-            product_in_cart_model.total = product_in_cart_quantity * product_in_cart_model.product.price
-            cart.sum = cart.sum + product_in_cart_model.total
-            product_in_cart_model.save()
-            cart.save()
-            return JsonResponse({
-                'price': product_in_cart_model.total,
-                'sum': cart.sum
-            })
-
-        return JsonResponse({'error': 'Получены не правильные данные!'})
+        if not client_data.get('quantity') or not client_data.get('product_in_cart'):
+            return JsonResponse({'errors': 'Получены неожиданные данные!'})
+        if not client_data.get('quantity').isdigit() or not client_data.get('product_in_cart').isdigit():
+            return JsonResponse({'errors': 'Получены неожиданные данные, не известные типы данных!'})
+        cart = CartOrOrder.objects.filter(customer__user=request.user, is_cart=True).first()
+        product_in_cart = ProductsInCart.objects.filter(pk=client_data.get('product_in_cart')).first()
+        product_in_cart_quantity = int(client_data.get('quantity'))
+        if product_in_cart_quantity <= 0:
+            return JsonResponse({'errors': 'Ошибка в количестве продукта!'})
+        if not product_in_cart:
+            return JsonResponse({'errors': 'Продукт не найден!'})
+        if not cart:
+            return JsonResponse({'errors': 'Корзина не найдена!'})
+        product_in_cart.quantity = product_in_cart_quantity
+        cart.sum = cart.sum - product_in_cart.total
+        product_in_cart.total = product_in_cart_quantity * product_in_cart.product.price
+        product_in_cart.save()
+        cart.save()
+        return JsonResponse({
+            'price': product_in_cart.total,
+            'sum': cart.sum
+        })
 
 
-class CartView(View):
+class DeleteProductToCartView(LoginRequiredMixin, View):
+    """ Представление удаления товара из корзины """
+
+    login_url = '/profile/authentication/'
+
+    def post(self, request, *args, **kwargs):
+        client_data = json.loads(request.body.decode('utf-8'))
+        product_in_cart_id = client_data.get('idProductsInCart' or None)
+        cart = CartOrOrder.objects.filter(customer__user=request.user, is_cart=True).first()
+        if not product_in_cart_id and not product_in_cart_id.isdigit() and not cart:
+            JsonResponse({'errors': 'Получены неожиданные данные!'})
+        product_in_cart = ProductsInCart.objects.filter(pk=product_in_cart_id).first()
+        if not product_in_cart:
+            JsonResponse({'errors': 'Не удалось найти продукт!'})
+        if not cart.products.filter(pk=product_in_cart.pk):
+            JsonResponse({'errors': 'Не удалось найти продукт в корзине!'})
+        cart.products.remove(product_in_cart)
+        cart.save()
+        return JsonResponse({'product_removed': product_in_cart_id, 'cart_sum_product': cart.sum})
+
+
+class CartView(LoginRequiredMixin, View):
     """ Представление корзины """
 
+    login_url = '/profile/authentication/'
+
     def get(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            raise Http404()
         if not Customer.objects.filter(user=request.user).exists():
             Customer.objects.create(user=request.user)
         customer = Customer.objects.get(user=request.user)
@@ -165,3 +207,29 @@ class CartView(View):
             'cart': cart
         }
         return render(request, 'app_product/cart.html', context)
+
+
+class OrderView(LoginRequiredMixin, OrderCheckMixin, View):
+    """ Представление оформление заказа """
+
+    login_url = '/profile/authentication/'
+
+    def get(self, request, *args, **kwargs):
+        self.order_check(request.user)
+        context = {
+            'cart': self.cart,
+            'customer': self.customer,
+            'order_form': OrderForm
+        }
+        return render(request, 'app_product/order.html', context)
+
+    def post(self, request, *args, **kwargs):
+        self.order_check(request.user)
+        order_form = OrderForm(request.POST or None)
+        self.form_check(order_form)
+        context = {
+            'cart': self.cart,
+            'customer': self.customer,
+            'order_form': order_form
+        }
+        return render(request, 'app_product/order.html', context)

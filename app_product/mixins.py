@@ -1,4 +1,7 @@
-from .models import ValuesOfSpecification, CustomFilter
+from django.http import Http404
+from app_profile.models import Customer
+
+from .models import ValuesOfSpecification, CustomFilter, CartOrOrder
 
 
 class FilterCategoryMixin:
@@ -35,3 +38,31 @@ class FilterCategoryMixin:
                     value_specification.append(value_sp)
             product = product.filter(specification__in=value_specification).distinct()
         return product
+
+
+class OrderCheckMixin:
+    customer = None
+    cart = None
+
+    def order_check(self, user):
+        self.customer = Customer.objects.filter(user=user).first()
+        if not self.customer:
+            raise Http404
+        self.cart = CartOrOrder.objects.filter(customer=self.customer, is_cart=True).first()
+        if not self.cart:
+            raise Http404
+        if not self.cart.products.all():
+            raise Http404
+
+    def form_check(self, order_form):
+        if order_form.is_valid():
+            self.cart.is_cart = False
+            self.cart.save()
+            order_model = order_form.save(commit=False)
+            order_model.order = self.cart
+            order_model.method_get = order_form.cleaned_data.get('method_get')
+            order_model.pickup_point = order_form.cleaned_data.get('pickup_point')
+            order_model.delivery_address = order_form.cleaned_data.get('delivery_address')
+            order_model.method_payment = order_form.cleaned_data.get('method_payment')
+            order_model.save()
+            return redirect('detail_profile')

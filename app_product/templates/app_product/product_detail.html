@@ -51,7 +51,8 @@
 </div>
 <div>
     <h3>Отзывы</h3>
-    <form id="reviewCreateForm" action="{% url 'product_detail' product.slug %}" method="POST">
+    {% if user.is_authenticated %}
+    <form id="reviewCreateForm" action="{% url 'review_add' product.slug %}" method="POST">
         {% csrf_token %}
         <div class="row">
             <div class="rating">
@@ -69,10 +70,13 @@
         </div>
     </form>
     <hr/>
+    {% endif %}
     <div id="reviewList" class="mt-2 mb-5">
-        {% for review in reviews %}
+        {% for review in page_obj %}
         <div id="reviewDetail_{{review.pk}}" class="mt-2">
-            <div><b class="review-user">{{ review.customer }}</b><i class="bi bi-star"></i> {{ review.rating }}</div>
+            <div><b class="review-user">{{ review.customer }}</b>
+                {% if review.rating != 0 %}<i class="bi bi-star"></i>{{ review.rating }}{% endif %}
+            </div>
             <small style="color: #5d5d64"><i>{{ review.date_of_creation }}</i></small>
             <div><b>Отзыв:</b> {{ review.review }}</div>
             <form id="reviewDeleteForm_{{review.pk}}" action="{% url 'review_delete' %}" method="POST">

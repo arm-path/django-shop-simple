@@ -2,6 +2,7 @@ from slugify import slugify
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
+from django.db.models import Sum
 
 from app_profile.models import Customer
 from .functions import is_digit
@@ -171,10 +172,18 @@ class ProductsInCart(models.Model):
 class CartOrOrder(models.Model):
     """ Модель корзины """
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, verbose_name='Покупатель')
-    products = models.ManyToManyField(ProductsInCart, related_name='product_in_cart', verbose_name='Продукты')
+    products = models.ManyToManyField(ProductsInCart, blank=True, related_name='product_in_cart', verbose_name='Продукты')
     quantity = models.IntegerField('Количество', default=0)
     sum = models.DecimalField('Сумма', max_digits=12, decimal_places=2, default=0.00)
     is_cart = models.BooleanField('Корзина', default=True)
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            if self.products.all():
+                self.sum = self.products.all().aggregate(p_sum=Sum('total'))['p_sum']
+            else:
+                self.sum = 0.00
+        super().save(*args, **kwargs)
 
     def __str__(self):
         if self.is_cart:
@@ -187,6 +196,61 @@ class CartOrOrder(models.Model):
         verbose_name_plural = 'Корзины-Заказы'
 
 
+class PickUpPoints(models.Model):
+    """ Модель пунктов выдачи """
+    region = models.CharField('Область, регион', max_length=69)
+    city = models.CharField('Город', max_length=69)
+    address = models.CharField('Адрес', max_length=255)
+
+    def __str__(self):
+        return f'{self.region}, {self.city}, {self.address}'
+
+    class Meta:
+        verbose_name = 'Пункт получения'
+        verbose_name_plural = 'Пункты получения'
+        ordering = ['region', 'city', 'address']
+
+
+class Order(models.Model):
+    """ Модель заказов  """
+    DELIVERY = 'delivery'
+    PICKUP = 'pickup'
+    METHOD_GET_CHOICES = (
+        ('delivery', 'Доставка'),
+        ('pickup', 'Самовывоз')
+    )
+    UPON_RECEIPT = 'upon_receipt'
+    ONLINE = 'online'
+    METHOD_PAYMENT_CHOICES = (
+        (UPON_RECEIPT, 'При получении'),
+        (ONLINE, 'Онлайн')
+    )
+    PLACED = 'placed'
+    TRANSIT = 'transit'
+    READY = 'ready'
+    COMPLETED = 'Completed'
+    ORDER_STATUS_CHOICES = (
+        (PLACED, 'Оформлен'),
+        (TRANSIT, 'В пути'),
+        (READY, 'Готов к выдаче'),
+        (COMPLETED, 'Завершен')
+    )
+
+    order = models.ForeignKey(CartOrOrder, on_delete=models.CASCADE, verbose_name='заказ')
+    method_get = models.CharField('Cпособ получения', max_length=255, choices=METHOD_GET_CHOICES, default=PICKUP)
+    pickup_point = models.ForeignKey(PickUpPoints, on_delete=models.PROTECT, verbose_name='Пункт выдачи', blank=True, null=True)
+    delivery_address = models.CharField('Адрес доставки', max_length=255, blank=True, null=True)
+    method_payment = models.CharField('Способ оплаты', max_length=255, choices=METHOD_PAYMENT_CHOICES, default=UPON_RECEIPT)
+    order_status = models.CharField('Статус заказа', max_length=255, choices=ORDER_STATUS_CHOICES, default=PLACED)
+
+    def __str__(self):
+        return f'Заказ №{self.pk} на сумму {self.order.sum}руб.'
+
+    class Meta:
+        verbose_name = 'Заказ'
+        verbose_name_plural = 'Заказы'
+
+
 class Review(models.Model):
     """ Модель отзывов """
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, verbose_name='Покупатель')
@@ -194,6 +258,21 @@ class Review(models.Model):
     date_of_creation = models.DateTimeField('Дата создания', auto_now_add=True)
     rating = models.PositiveIntegerField('Рейтинг', default=0)
     review = models.CharField('Отзыв', max_length=255, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.rating_product(self.product)
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.rating_product(self.product)
+
+    def rating_product(self, product):
+        product_count = Review.objects.filter(product=product).count()
+        product_sum = Review.objects.filter(product=product).aggregate(p_sum=Sum('rating'))['p_sum']
+        rating = product_sum / product_count
+        product.rating = round(rating, 2)
+        product.save()
 
     def __str__(self):
         return f'{self.customer.user.username} : {self.rating}'

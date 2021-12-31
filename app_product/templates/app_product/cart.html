@@ -16,30 +16,34 @@
     </tr>
     </thead>
     <tbody id="productInCart">
-    <form method="POST" action="">
-        {% csrf_token %}
-        {% for product in cart.products.all %}
-        <tr>
-            <th scope="row">{{ forloop.counter }}</th>
-            <td>{{ product.product.title }}</td>
-            <td>
-                <img style="max-width: 70px"
-                     src="{% if product.product.image %}{{ product.product.image.url }}{% else %}{% static 'image/no_image.jpg' %}{% endif %}">
-            </td>
-            <td>{{ product.product.price }}</td>
-            <td>
+
+    {% for product in cart.products.all %}
+    <tr class="jsBtnOrder" id="productInCart_{{product.pk}}">
+        <th scope="row">{{ forloop.counter }}</th>
+        <td>{{ product.product.title }}</td>
+        <td>
+            <img style="max-width: 70px"
+                 src="{% if product.product.image %}{{ product.product.image.url }}{% else %}{% static 'image/no_image.jpg' %}{% endif %}">
+        </td>
+        <td>{{ product.product.price }}</td>
+        <td>
+            <form method="POST" action="">
+                {% csrf_token %}
                 <input value="{{ product.quantity }}" type="number"
                        data-count="{{ product.id }}" data-cart="{{ cart.id }}"
                        data-url="{% url 'product_to_cart_change_quantity' product.id %}"
                        class="form-control" style=" display: inline; max-width: 100px" min="0">
-            </td>
-            <td class="js-total">{{ product.total }}</td>
-            <td>
-                <button type="button" class="btn btn-danger"><i class="bi bi-trash"></i></button>
-            </td>
-        </tr>
-        {% endfor %}
-    </form>
+            </form>
+        </td>
+        <td class="js-total">{{ product.total }}</td>
+        <td>
+            <form id="productDelete_{{product.pk}}" action="{% url 'product_to_cart_delete' %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i></button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
     <tr>
         <td colspan="5">
             <b>Итого:</b>
@@ -50,6 +54,8 @@
     </tr>
     </tbody>
 </table>
-<button class="btn btn-success">Оформить заказ</button>
+{% if cart.products.all %}
+<a id="btnOrder" href="{% url 'order' %}" class="btn btn-success">Оформить заказ</a>
+{% endif %}
 <script src="{% static 'app_product/js/cart.js' %}"></script>
 {% endblock %}
