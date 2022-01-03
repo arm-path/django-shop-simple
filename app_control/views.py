@@ -4,26 +4,33 @@ from django.forms.models import model_to_dict
 from django.http import JsonResponse, Http404
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from django.views.generic import View, CreateView, DeleteView
+from django.views.generic import View, CreateView, UpdateView, DeleteView
+from django.contrib.messages.views import SuccessMessageMixin
+from django.utils.decorators import method_decorator
+from django.contrib.admin.views.decorators import staff_member_required
 
 from .utils import isint
 from app_product.models import (Category,
                                 Specification,
                                 ValuesOfSpecification,
                                 Product,
-                                CustomFilter)
+                                CustomFilter,
+                                PickUpPoints)
 from .forms import (CategoryForm,
                     SpecificationForm,
                     ValuesOfSpecificationForm,
                     ProductForm, ProductAdditionallyForm,
-                    CustomFilterForm)
+                    CustomFilterForm,
+                    PickUpPointsForm)
 from .mixins import (BaseMixin,
                      CategoryChangeMixin,
                      SpecificationCreateAndChangeMixin,
                      ValuesOfSpecificationCreateAndChangeMixin,
-                     CreateAndChangeProductMixin)
+                     CreateAndChangeProductMixin,
+                     PickupPointMixin)
 
 
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
 class CategoryCreateView(CreateView):
     """ Представление добавления категории """
     model = Category
@@ -39,6 +46,7 @@ class CategoryCreateView(CreateView):
         return reverse_lazy('category_change', args=(self.object.slug,))
 
 
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
 class CategoryChangeView(CategoryChangeMixin, View):
     """ Представление изменения категории """
 
@@ -58,12 +66,14 @@ class CategoryChangeView(CategoryChangeMixin, View):
         return render(request, 'app_control/category_change.html', context=context)
 
 
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
 class CategoryDeleteView(DeleteView):
     """ Представление удаления категории """
     model = Category
     success_url = reverse_lazy('category_create')
 
 
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
 class SpecificationCreateView(SpecificationCreateAndChangeMixin, View):
     """ Представление добавления характеристики """
 
@@ -77,6 +87,7 @@ class SpecificationCreateView(SpecificationCreateAndChangeMixin, View):
             return JsonResponse({'errors': form_specification.errors})
 
 
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
 class SpecificationChangeView(SpecificationCreateAndChangeMixin, View):
     """ Представление изменения характеристики """
 
@@ -93,6 +104,7 @@ class SpecificationChangeView(SpecificationCreateAndChangeMixin, View):
         return JsonResponse({'errors': form_specification.errors})
 
 
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
 class SpecificationDeleteView(BaseMixin, View):
     """ Представление удаления характеристики """
 
@@ -102,6 +114,7 @@ class SpecificationDeleteView(BaseMixin, View):
         return redirect('category_change', slug=self.slug_option)
 
 
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
 class ValuesOfSpecificationCreateView(ValuesOfSpecificationCreateAndChangeMixin, View):
     """ Представление Добавления Значения Характеристики """
 
@@ -119,6 +132,7 @@ class ValuesOfSpecificationCreateView(ValuesOfSpecificationCreateAndChangeMixin,
             return JsonResponse({'errors': form_value_specification.errors})
 
 
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
 class ValueOfSpecificationChangeView(ValuesOfSpecificationCreateAndChangeMixin, View):
     """ Представление изменения значения характеристики """
 
@@ -135,6 +149,7 @@ class ValueOfSpecificationChangeView(ValuesOfSpecificationCreateAndChangeMixin, 
         return JsonResponse({'errors': form_specification.errors})
 
 
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
 class ValueSpecificationDeleteView(BaseMixin, View):
     """ Представление удаления значения харкатеристики """
 
@@ -144,6 +159,7 @@ class ValueSpecificationDeleteView(BaseMixin, View):
         return redirect('specification_value_create', slug=self.slug_option)
 
 
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
 class ControlProductView(View):
     """ Представление выбора категории для добавления продукта """
 
@@ -161,6 +177,7 @@ class ControlProductView(View):
         return render(request, 'app_control/product_control.html', {'categories': categories})
 
 
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
 class CreateProductView(CreateAndChangeProductMixin, View):
     """ Представление добавления продукта """
 
@@ -187,6 +204,7 @@ class CreateProductView(CreateAndChangeProductMixin, View):
         return render(request, 'app_control/product_create.html', context)
 
 
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
 class ChangeProductView(CreateAndChangeProductMixin, View):
     """ Представление изменения продукта """
 
@@ -212,6 +230,7 @@ class ChangeProductView(CreateAndChangeProductMixin, View):
         return render(request, 'app_control/product_change.html', context)
 
 
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
 class ChangeCategoryInProductView(View):
     """ Представление изменения категории в прдставлении изменения продукта """
 
@@ -231,12 +250,14 @@ class ChangeCategoryInProductView(View):
         return JsonResponse({'category_specification': category_specification})
 
 
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
 class ProductDeleteView(DeleteView):
     """ Представление удаления продукта """
     model = Product
     success_url = reverse_lazy('base')
 
 
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
 class FilterControlView(View):
     """ Представление создания фильтра """
 
@@ -260,6 +281,7 @@ class FilterControlView(View):
         return render(request, 'app_control/filter_control.html', context)
 
 
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
 class FilterCreateView(View):
     """ Представление создания фильтра  """
 
@@ -299,3 +321,38 @@ class FilterCreateView(View):
                 return JsonResponse({'delete_filter': client_data['pk']})
 
         return JsonResponse({'error': 'ErrorView'})
+
+
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
+class PickupPointCreateView(PickupPointMixin, SuccessMessageMixin, CreateView):
+    """ Представление создания пунктов выдачи """
+
+    form_class = PickUpPointsForm
+    template_name = 'app_control/pickup_point_control.html'
+    success_url = reverse_lazy('pickup_point_control')
+    success_message = 'Пункт выдачи успешно добавлен!'
+
+
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
+class PickupPointChangeView(PickupPointMixin, SuccessMessageMixin, UpdateView):
+    """ Представление изменения пунктов выдачи """
+
+    model = PickUpPoints
+    form_class = PickUpPointsForm
+    template_name = 'app_control/pickup_point_control.html'
+    success_url = reverse_lazy('pickup_point_control')
+    success_message = 'Пункт выдачи успешно изменен!'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['point_action'] = PickUpPoints.objects.get(pk=self.kwargs.get('pk')).pk
+        context['change'] = True
+        return context
+
+
+@method_decorator(staff_member_required(login_url='authentication'), name='dispatch')
+class PickupPointDeleteView(PickupPointMixin, DeleteView):
+    """ Удаление пункта выдачи """
+    model = PickUpPoints
+    success_url = reverse_lazy('pickup_point_control')
+    template_name = 'app_control/pickup_point_confirm_delete.html'

@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.fields import CharField
 
-from app_product.models import Category, Specification, ValuesOfSpecification, Product, CustomFilter
+from app_product.models import Category, Specification, ValuesOfSpecification, Product, CustomFilter, PickUpPoints
 
 
 class CategoryForm(forms.ModelForm):
@@ -121,3 +121,16 @@ class CustomFilterForm(forms.ModelForm):
     class Meta:
         model = CustomFilter
         fields = ('specification', 'moreOrEqual', 'lessOrEqual',)
+
+
+class PickUpPointsForm(forms.ModelForm):
+    """ Форма пункта выдачи """
+
+    class Meta:
+        model = PickUpPoints
+        fields = ('region', 'city', 'address')
+        widgets = {
+            'region': forms.TextInput(attrs={'class': 'form-control mb-2'}),
+            'city': forms.TextInput(attrs={'class': 'form-control mb-2'}),
+            'address': forms.TextInput(attrs={'class': 'form-control mb-2'})
+        }

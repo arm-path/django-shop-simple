@@ -5,6 +5,7 @@ from .views import SpecificationCreateView, SpecificationDeleteView, Specificati
 from .views import ValuesOfSpecificationCreateView, ValueOfSpecificationChangeView, ValueSpecificationDeleteView
 from .views import ControlProductView, CreateProductView, ChangeProductView, ChangeCategoryInProductView, ProductDeleteView
 from .views import FilterControlView, FilterCreateView
+from .views import PickupPointCreateView, PickupPointChangeView, PickupPointDeleteView
 
 urlpatterns = [
     path('category-create', CategoryCreateView.as_view(), name='category_create'),
@@ -22,5 +23,8 @@ urlpatterns = [
     path('specification-for-product/<str:slug>/<int:pk>/', ChangeCategoryInProductView.as_view(), name='specification_for_product'),
     path('product-delete/<str:slug>/', ProductDeleteView.as_view(), name='product_delete'),
     path('filter-control/', FilterControlView.as_view(), name='filter_control'),
-    path('filter-create/<str:category>/<str:specification>/', FilterCreateView.as_view(), name='filter_create')
+    path('filter-create/<str:category>/<str:specification>/', FilterCreateView.as_view(), name='filter_create'),
+    path('pickup_point/control/', PickupPointCreateView.as_view(), name='pickup_point_control'),
+    path('pickup_point/change/<int:pk>/', PickupPointChangeView.as_view(), name='pickup_point_change'),
+    path('pickup_point/delete/<int:pk>/', PickupPointDeleteView.as_view(), name='pickup_point_delete')
 ]

@@ -98,6 +98,9 @@
                                     <p class=" font-monospace fs-5 fw-bold">{{ product.price }}</p>
                                     <button type="submit" class="btn btn-success">В корзину <i class="bi bi-cart4"></i></button>
                                 </form>
+                                {% if request.user.is_staff %}
+                                <a href="{% url 'product_change' product.slug %}" class="btn btn-warning mt-2">Изменить</a>
+                                {% endif %}
                             </div>
 
                         </div>

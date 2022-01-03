@@ -206,6 +206,7 @@ class PickUpPoints(models.Model):
         return f'{self.region}, {self.city}, {self.address}'
 
     class Meta:
+        unique_together = ('region', 'city', 'address')
         verbose_name = 'Пункт получения'
         verbose_name_plural = 'Пункты получения'
         ordering = ['region', 'city', 'address']

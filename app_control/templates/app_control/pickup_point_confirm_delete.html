@@ -1,0 +1,15 @@
+{% extends 'app_control/pickup_point_control.html' %}
+{% block form %}
+<div class="border border-3 rounded border-danger p-2">
+    <form method="post">
+        {% csrf_token %}
+        {{ form }}
+        <h3 class="text-center">Вы уверены что хотите удалить пункт выдачи?</h3>
+        <h6 class="text-center">{{object}}</h6>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button class="btn btn-danger" type="submit">Да</button>
+            <a class="btn btn-secondary" href="{% url 'pickup_point_control' %}">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

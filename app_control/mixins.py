@@ -2,7 +2,7 @@ from django.http import Http404
 from django.shortcuts import redirect
 from django.contrib import messages
 
-from app_product.models import Category, Specification, ValuesOfSpecification, Product
+from app_product.models import Category, Specification, ValuesOfSpecification, Product, PickUpPoints
 from .forms import SpecificationForm, ValuesOfSpecificationForm, ProductAdditionallyForm
 
 
@@ -175,3 +175,11 @@ class CreateAndChangeProductMixin(BaseMixin):
                 'select': select
             })
         return category_specification
+
+
+class PickupPointMixin:
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()
+        context['points'] = PickUpPoints.objects.all()
+        return context
