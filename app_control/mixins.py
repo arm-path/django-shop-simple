@@ -120,6 +120,7 @@ class CreateAndChangeProductMixin(BaseMixin):
                     'select': select[0] if select else None
                 })
             context = {
+                'categories': Category.objects.all(),
                 'form_value_specification': ValuesOfSpecificationForm(),
                 'category_specification': category_specification
             }

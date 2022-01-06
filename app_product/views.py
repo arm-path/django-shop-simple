@@ -34,12 +34,17 @@ class CategoryDetailView(FilterCategoryMixin, View):
     def get(self, request, *args, **kwargs):
         context = {
             'category': Category.objects.get(slug=self.kwargs['slug']),
-            'products': Product.objects.filter(category__slug=self.kwargs['slug']),
             'categories': Category.objects.all(),
             'specifications': Specification.objects.filter(category__slug=self.kwargs['slug'], use_filters=True)
         }
+        products = Product.objects.filter(category__slug=self.kwargs['slug'])
         if request.GET:
-            context['products'] = self.get_product(request.GET, context['products'])
+            products = self.get_product(request.GET, products)
+
+        paginator = Paginator(products, 6)
+        page = request.GET.get('page')
+        page_obj = paginator.get_page(page)
+        context['page_obj'] = page_obj
 
         return render(request, 'app_product/category_detail.html', context)
 

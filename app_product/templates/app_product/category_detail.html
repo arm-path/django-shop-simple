@@ -8,7 +8,11 @@
         <form action="" method="GET" class="font-monospace">
             <div class="form-check">
                 <div class="fw-bolder text-muted">Рейтинг</div>
-                <input class="form-check-input" type="checkbox" id="rating" name="rating" value="5">
+                <input class="form-check-input" type="checkbox" id="rating" name="rating" value="5"
+                       {% for key, values_get in request.GET.lists %}
+                       {% if key == 'rating' %}checked{% endif %}
+                {% endfor %}
+                >
                 <label class="form-check-label" for="rating"> Рейтинг 5 и выше </label>
             </div>
             {% for specification in specifications %}
@@ -25,7 +29,13 @@
                 {% for value in specification.values_sp.all %}
                 <div class="me-3 ms-2">
                     <input class="form-check-input" type="checkbox" value="{{ value.value }}" id="id_value_{{value.pk}}"
-                           name="{{specification.slug}}"/>
+                           name="{{specification.slug}}"
+                           {% for key, values_get in request.GET.lists %}
+                           {% if key == specification.slug %}
+                           {% for value_get in values_get %} {% if value_get == value.value %} checked {% endif %} {% endfor %}
+                           {% endif %}
+                           {% endfor %}
+                    />
                     <label class="form-check-label" for="id_value_{{value.pk}}"> {{ value.value }} {{specification.unit}}</label>
                 </div>
                 {% endfor %}
@@ -36,20 +46,38 @@
                 <div class="me-3 ms-2">
                     {% if one_filter.lessOrEqual and one_filter.moreOrEqual %}
                     <input class="form-check-input" type="checkbox" value="{{ one_filter.pk }}" id="id_value_{{one_filter.pk}}"
-                           name="cm-filter-{{specification.slug}}"/>
+                           name="cm-filter-{{specification.slug}}"
+                           {% for key, values_get in request.GET.lists %}
+                           {% if key == 'cm-filter-'|add:specification.slug %}
+                    {% for value_get in values_get %} {% if value_get == one_filter.pk|slugify %} checked {% endif %} {% endfor %}
+                    {% endif %}
+                    {% endfor %}
+                    />
                     <label class="form-check-label" for="id_value_{{one_filter.pk}}">
                         {{ one_filter.moreOrEqual|floatformat:-2 }} - {{ one_filter.lessOrEqual|floatformat:-2 }}
                     </label>
                     {% else %}
                     {% if one_filter.lessOrEqual %}
                     <input class="form-check-input" type="checkbox" value="{{ one_filter.pk }}" id="id_value_{{one_filter.pk}}_less"
-                           name="cm-filter-{{specification.slug}}"/>
+                           name="cm-filter-{{specification.slug}}"
+                           {% for key, values_get in request.GET.lists %}
+                           {% if key == 'cm-filter-'|add:specification.slug %}
+                    {% for value_get in values_get %} {% if value_get == one_filter.pk|slugify %} checked {% endif %} {% endfor %}
+                    {% endif %}
+                    {% endfor %}
+                    />
                     <label class="form-check-label" for="id_value_{{one_filter.pk}}_less"> Менее {{ one_filter.lessOrEqual|floatformat:-2 }}
                     </label>
                     {% endif %}
                     {% if one_filter.moreOrEqual %}
                     <input class="form-check-input" type="checkbox" value="{{ one_filter.pk }}" id="id_value_{{one_filter.pk}}_more"
-                           name="cm-filter-{{specification.slug}}"/>
+                           name="cm-filter-{{specification.slug}}"
+                           {% for key, values_get in request.GET.lists %}
+                           {% if key == 'cm-filter-'|add:specification.slug %}
+                    {% for value_get in values_get %} {% if value_get == one_filter.pk|slugify %} checked {% endif %} {% endfor %}
+                    {% endif %}
+                    {% endfor %}
+                    />
                     <label class="form-check-label" for="id_value_{{one_filter.pk}}_more"> Более {{ one_filter.moreOrEqual|floatformat:-2 }}
                     </label>
                     {% endif %}
@@ -71,7 +99,12 @@
     </div>
     <div class="col-md-8 border rounded p-1">
         <h3 class="text-center">{{ category.title }}</h3>
-        {% for product in products %}
+        {% if not page_obj %}
+        <div class="alert alert-warning text-center" role="alert">
+            Отсутствуют товары по выбранным фильтрам!
+        </div>
+        {% endif %}
+        {% for product in page_obj %}
         <div class="card mb-2">
             <div class="card-body p-1">
                 <div class="row">
@@ -109,6 +142,7 @@
             </div>
         </div>
         {% endfor %}
+        {% include 'include\pagination.html' %}
     </div>
 
 </div>
