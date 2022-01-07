@@ -61,7 +61,7 @@ class ValuesOfSpecificationForm(forms.ModelForm):
         self.fields['value'].label = 'Значение'
 
     specification = forms.ModelChoiceField(
-        widget=forms.HiddenInput(attrs={'style': 'form-control'}), queryset=Specification.objects.all())
+        widget=forms.HiddenInput(attrs={'class': 'form-control'}), queryset=Specification.objects.all())
     value = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
 
     class Meta:

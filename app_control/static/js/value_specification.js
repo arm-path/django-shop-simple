@@ -1,9 +1,9 @@
-let url = null, data=null, slug_specification,
+let url = null, data = null, slug_specification,
     id_errors_value_specification = document.getElementById('id_errors_value_specification'),
     table_value_specification = document.getElementById('table_value_specification'),
     create_value_specification = document.getElementById("create_value_specification"),
     id_form_value_specification = document.getElementById("id_form_value_specification"),
-    id_submit_value_specification= document.getElementById('id_submit_value_specification'),
+    id_submit_value_specification = document.getElementById('id_submit_value_specification'),
     create_change_value_specification_label = document.getElementById("create_change_value_specification_label"),
     modal_specification = document.querySelector('.modal-js[data-modal]')
 
@@ -14,7 +14,6 @@ create_value_specification.addEventListener("click", (event) => {
     document.getElementById('id_value').value = ''
     id_errors_value_specification.innerHTML = ''
     url = create_value_specification.getAttribute('data-action')
-    data = {'value': document.getElementById('id_value').value}
 })
 
 // Функция: Изменяет значение характеристики.
@@ -33,6 +32,7 @@ table_value_specification.addEventListener('click', (event) => {
 // Функция: Отправляет форму.
 id_form_value_specification.addEventListener('submit', (event) => {
     event.preventDefault()
+    data = {'value': document.getElementById('id_value').value}
     if (url !== null && data !== null) send_on_check(url, data)
 })
 
@@ -65,7 +65,7 @@ const send_on_check = async (url, data) => {
                         style="text-align: center; font-size: 12px" role="alert">Поле "Значение": ${item} </div>`
                     })
                 }
-            }else{
+            } else {
                 window.location.reload()
             }
         }
